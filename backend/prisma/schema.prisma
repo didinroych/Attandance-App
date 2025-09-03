@@ -1,0 +1,179 @@
+// MVP Prisma Schema - Simple Attendance App
+// Focus: Basic attendance tracking with face recognition
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= CORE MODELS =============
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      UserRole
+  fullName  String   @map("full_name")
+  phone     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  teacher        Teacher?
+  student        Student?
+  faceEmbedding  FaceEmbedding?
+  attendances    Attendance[]
+  createdClasses Class[] @relation("CreatedBy")
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model Teacher {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique @map("user_id")
+  nip    String @unique
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classes Class[]
+
+  @@map("teachers")
+}
+
+model Student {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique @map("user_id")
+  nis    String @unique
+  grade  Grade
+  major  Major  @default(UMUM)
+
+  // Relations
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+  enrollments ClassStudent[]
+
+  @@map("students")
+}
+
+model Class {
+  id          Int    @id @default(autoincrement())
+  className   String @map("class_name") // "XII IPA 1"
+  subject     String // "Matematika", "Fisika", etc
+  teacherId   Int    @map("teacher_id")
+  room        String?
+  schedule    String // "Senin 08:00-09:30" - simple string for MVP
+  isActive    Boolean @default(true) @map("is_active")
+  createdById Int    @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  teacher     Teacher @relation(fields: [teacherId], references: [id])
+  createdBy   User @relation("CreatedBy", fields: [createdById], references: [id])
+  students    ClassStudent[]
+  attendances Attendance[]
+
+  @@map("classes")
+}
+
+model ClassStudent {
+  id        Int @id @default(autoincrement())
+  classId   Int @map("class_id")
+  studentId Int @map("student_id")
+
+  // Relations
+  class   Class   @relation(fields: [classId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@unique([classId, studentId])
+  @@map("class_students")
+}
+
+model Attendance {
+  id           Int      @id @default(autoincrement())
+  classId      Int      @map("class_id")
+  studentId    Int      @map("student_id")
+  date         DateTime @db.Date
+  checkInTime  DateTime? @map("check_in_time")
+  status       AttendanceStatus
+  method       AttendanceMethod @default(MANUAL)
+  notes        String?
+  markedById   Int      @map("marked_by_id") // Teacher who marked
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  class     Class   @relation(fields: [classId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
+  markedBy  User    @relation(fields: [markedById], references: [id])
+
+  @@unique([classId, studentId, date])
+  @@map("attendances")
+}
+
+model FaceEmbedding {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique @map("user_id")
+  embeddingData   Json    @map("embedding_data") // Store face vectors
+  imagePath       String? @map("image_path")
+  isActive        Boolean @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("face_embeddings")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  isRevoked Boolean  @default(false) @map("is_revoked")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ============= ENUMS =============
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum Grade {
+  X    @map("10")
+  XI   @map("11") 
+  XII  @map("12")
+}
+
+enum Major {
+  IPA
+  IPS
+  BAHASA
+  UMUM
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  SICK
+  PERMIT
+}
+
+enum AttendanceMethod {
+  MANUAL
+  FACE_RECOGNITION
+}
