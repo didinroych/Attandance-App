@@ -10,6 +10,7 @@ import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { config } from 'dotenv';
+import { request, response } from "express";
 
 const register = async(request) => {
     const user = validate(registerUserValidation, request);
@@ -124,12 +125,10 @@ const update = async(request) => {
     }
 
     const data = {};
-    if (user.fullName) {
-        data.fullName = user.fullName;
-    }
-    if (user.password) {
-        data.password = await bcrypt.hash(user.password, 10);
-    }
+    if (user.fullName) { data.fullName = user.fullName; }
+    if (user.password) { data.password = await bcrypt.hash(user.password, 10); }
+    if (user.username) { data.username = user.username; }
+    if (user.email) { data.email = user.email; }
 
     return prismaClient.user.update({
         where: {
@@ -139,7 +138,86 @@ const update = async(request) => {
         select: {
             id: true,
             username: true,
-            fullName: true
+            fullName: true,
+            email: true
+        }
+    })
+}
+
+const updateStudent = async(request) => {
+    const user = validate(updateUserValidation, request);
+
+    const existingUser = await prismaClient.user.findUnique({
+        where: {
+            id: user.id
+        },
+        select: {
+            role: true
+        }
+    })
+
+    if (!existingUser) {
+        throw new ResponseError(404, "User is not found");
+    }
+
+    console.log(existingUser.role)
+    if (existingUser.role !== "STUDENT") {
+        throw new ResponseError(403, `User is not Student`);
+    }
+
+
+    const data = {};
+    data.userId = user.id
+    if (user.nis) { data.nis = user.nis }
+    if (user.grade) { data.grade = user.grade }
+
+    return prismaClient.student.upsert({
+        where: {
+            userId: user.id
+        },
+        create: data,
+        update: data,
+        select: {
+            userId: true,
+            nis: true,
+            grade: true
+        }
+    })
+}
+
+const updateTeacher = async(request) => {
+    const user = validate(updateUserValidation, request);
+
+    const existingUser = await prismaClient.user.findUnique({
+        where: {
+            id: user.id
+        },
+        select: {
+            role: true
+        }
+    })
+
+    if (!existingUser) {
+        throw new ResponseError(404, "User is not found");
+    }
+    if (existingUser.role !== "TEACHER") {
+        throw new ResponseError(403, "User is not TEACHER");
+    }
+
+    const data = {};
+    data.userId = user.id
+    if (user.nip) { data.nip = user.nip }
+
+    return prismaClient.teacher.upsert({
+        where: {
+            userId: user.id
+        },
+        create: data,
+        update: data,
+        select: {
+            userId: true,
+            nip: true,
+            role: true
         }
     })
 }
@@ -175,5 +253,7 @@ export default {
     login,
     get,
     update,
+    updateStudent,
+    updateTeacher,
     // logout
 }

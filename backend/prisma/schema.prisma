@@ -51,7 +51,7 @@ model Student {
   id     Int    @id @default(autoincrement())
   userId Int    @unique @map("user_id")
   nis    String @unique
-  grade  Grade
+  grade  String
   major  Major  @default(UMUM)
 
   // Relations

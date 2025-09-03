@@ -34,6 +34,28 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJE
 
 {
     "fullName": "password2",
-
+    "username": "kaka",
     "password": "passwordxxx"
+}
+
+
+###
+PATCH http://localhost:3000/api/users/current/student
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJEaWRpbiIsInBhc3N3b3JkIjoiJDJiJDEwJENBLjJENjhZcUI2T1dJb1Zodjk4ZE9HYU5yRUNWckJDWEJLUHZWZDl4MXpxeVF1ckZyQVVtIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3NTY4NjI1MDN9.HkQzo1RJLexobfGhjWcyA8SVcAq5Mh6IEcwwN9-kk00
+
+{
+    "nis": "141212",
+    "grade": "10"
+}
+
+###
+PATCH http://localhost:3000/api/users/current/teacher
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJEaWRpbiIsInBhc3N3b3JkIjoiJDJiJDEwJENBLjJENjhZcUI2T1dJb1Zodjk4ZE9HYU5yRUNWckJDWEJLUHZWZDl4MXpxeVF1ckZyQVVtIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3NTY4NjI1MDN9.HkQzo1RJLexobfGhjWcyA8SVcAq5Mh6IEcwwN9-kk00
+
+{
+    "nip": "13141"
 }

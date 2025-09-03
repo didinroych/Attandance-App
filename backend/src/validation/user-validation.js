@@ -21,7 +21,13 @@ const updateUserValidation = Joi.object({
     username: Joi.string().max(100).optional(),
     email: Joi.string().max(100).optional(),
     password: Joi.string().max(100).optional(),
-    fullName: Joi.string().max(100).optional()
+    fullName: Joi.string().max(100).optional(),
+    //teacher
+    nip: Joi.string().max(12).optional(),
+
+    //student
+    nis: Joi.string().max(12).optional(),
+    grade: Joi.string().max(4).optional()
 })
 
 export {

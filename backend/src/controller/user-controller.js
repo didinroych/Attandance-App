@@ -49,6 +49,36 @@ const update = async(req, res, next) => {
     }
 }
 
+const updateStudent = async(req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const request = req.body;
+        request.id = userId;
+
+        const result = await userService.updateStudent(request);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
+const updateTeacher = async(req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const request = req.body;
+        request.id = userId;
+
+        const result = await userService.updateTeacher(request);
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 const logout = async(req, res, next) => {
     try {
         await userService.logout(req.user.username);
@@ -65,5 +95,7 @@ export default {
     login,
     getCurrentUser,
     update,
+    updateStudent,
+    updateTeacher,
     logout
 }
