@@ -84,7 +84,7 @@ const login = async(request) => {
             id: user.id,
             role: user.role
         },
-        token: token
+        token: refreshToken.token
     };
 }
 
@@ -216,8 +216,7 @@ const updateTeacher = async(request) => {
         update: data,
         select: {
             userId: true,
-            nip: true,
-            role: true
+            nip: true
         }
     })
 }

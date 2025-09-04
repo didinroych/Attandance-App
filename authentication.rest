@@ -1,14 +1,36 @@
-POST http://localhost:3000/api/users
+POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "Didin",
-    "email": "didin@gmail.com",
-    "password": "password",
-    "fullName": "Didin Roy Ch",
-    "phone": "+62 85799560414"
+    "username": "katamsaamam",
+    "email": "sasas@gmail.com",
+    "password": "password"
 }
+
+###
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "katamsaamam",
+    "password": "password"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###
 POST http://localhost:3000/api/users/login
@@ -16,8 +38,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "Didin",
-    "password": "passwordxxx"
+    "username": "katamsaamam",
+    "password": "password"
 }
 
 ###
@@ -54,7 +76,7 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJE
 PATCH http://localhost:3000/api/users/current/teacher
 Content-Type: application/json
 Accept: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJEaWRpbiIsInBhc3N3b3JkIjoiJDJiJDEwJENBLjJENjhZcUI2T1dJb1Zodjk4ZE9HYU5yRUNWckJDWEJLUHZWZDl4MXpxeVF1ckZyQVVtIiwicm9sZSI6IlNUVURFTlQiLCJpYXQiOjE3NTY4NjI1MDN9.HkQzo1RJLexobfGhjWcyA8SVcAq5Mh6IEcwwN9-kk00
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJrYXRhbWFtYW0iLCJwYXNzd29yZCI6IiQyYiQxMCQ3UGpPd3lQeWhHMXBkd3JWMFNCY2NlZEIyU1hvWlZhUXEyTFkyYnZKNHV2Z3lpV3lNSk5rZSIsInJvbGUiOiJURUFDSEVSIiwiaWF0IjoxNzU2ODcwODg0fQ.tAQKkMKmz3vK7yGZ1a27DzLw3x2C-QruPeuaWW0R5dY
 
 {
     "nip": "13141"

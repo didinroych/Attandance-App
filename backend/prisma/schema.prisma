@@ -1,5 +1,6 @@
-// MVP Prisma Schema - Simple Attendance App
-// Focus: Basic attendance tracking with face recognition
+// School Attendance App Database Schema
+// For SD/SMP/SMA with Face Recognition
+// Prisma Schema
 
 generator client {
   provider = "prisma-client-js"
@@ -10,130 +11,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============= CORE MODELS =============
+// =====================================================
+// USER MANAGEMENT & AUTHENTICATION
+// =====================================================
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String   @unique
-  password  String
-  role      UserRole
-  fullName  String   @map("full_name")
-  phone     String?
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  email        String   @unique @db.VarChar(100)
+  password String   @map("password") @db.VarChar(255)
+  role         UserRole
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  teacher        Teacher?
-  student        Student?
-  faceEmbedding  FaceEmbedding?
-  attendances    Attendance[]
-  createdClasses Class[] @relation("CreatedBy")
-  refreshTokens  RefreshToken[]
+  refreshTokens RefreshToken[]
+  teacher       Teacher?
+  student       Student?
+  activityLogs  ActivityLog[]
+  homeroomClass Class[]        @relation("HomeroomTeacher")
 
   @@map("users")
-}
-
-model Teacher {
-  id     Int    @id @default(autoincrement())
-  userId Int    @unique @map("user_id")
-  nip    String @unique
-
-  // Relations
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  classes Class[]
-
-  @@map("teachers")
-}
-
-model Student {
-  id     Int    @id @default(autoincrement())
-  userId Int    @unique @map("user_id")
-  nis    String @unique
-  grade  String
-  major  Major  @default(UMUM)
-
-  // Relations
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attendances Attendance[]
-  enrollments ClassStudent[]
-
-  @@map("students")
-}
-
-model Class {
-  id          Int    @id @default(autoincrement())
-  className   String @map("class_name") // "XII IPA 1"
-  subject     String // "Matematika", "Fisika", etc
-  teacherId   Int    @map("teacher_id")
-  room        String?
-  schedule    String // "Senin 08:00-09:30" - simple string for MVP
-  isActive    Boolean @default(true) @map("is_active")
-  createdById Int    @map("created_by_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  teacher     Teacher @relation(fields: [teacherId], references: [id])
-  createdBy   User @relation("CreatedBy", fields: [createdById], references: [id])
-  students    ClassStudent[]
-  attendances Attendance[]
-
-  @@map("classes")
-}
-
-model ClassStudent {
-  id        Int @id @default(autoincrement())
-  classId   Int @map("class_id")
-  studentId Int @map("student_id")
-
-  // Relations
-  class   Class   @relation(fields: [classId], references: [id])
-  student Student @relation(fields: [studentId], references: [id])
-
-  @@unique([classId, studentId])
-  @@map("class_students")
-}
-
-model Attendance {
-  id           Int      @id @default(autoincrement())
-  classId      Int      @map("class_id")
-  studentId    Int      @map("student_id")
-  date         DateTime @db.Date
-  checkInTime  DateTime? @map("check_in_time")
-  status       AttendanceStatus
-  method       AttendanceMethod @default(MANUAL)
-  notes        String?
-  markedById   Int      @map("marked_by_id") // Teacher who marked
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  // Relations
-  class     Class   @relation(fields: [classId], references: [id])
-  student   Student @relation(fields: [studentId], references: [id])
-  markedBy  User    @relation(fields: [markedById], references: [id])
-
-  @@unique([classId, studentId, date])
-  @@map("attendances")
-}
-
-model FaceEmbedding {
-  id              Int     @id @default(autoincrement())
-  userId          Int     @unique @map("user_id")
-  embeddingData   Json    @map("embedding_data") // Store face vectors
-  imagePath       String? @map("image_path")
-  isActive        Boolean @default(true) @map("is_active")
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("face_embeddings")
+  @@index([role, isActive], map: "idx_users_role_active")
 }
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())
-  userId    Int      @unique @map("user_id")
-  token     String   @unique @db.VarChar(500)
+  userId    Int      @map("user_id")
+  tokenHash String   @map("token_hash") @db.VarChar(255)
   expiresAt DateTime @map("expires_at")
   isRevoked Boolean  @default(false) @map("is_revoked")
   createdAt DateTime @default(now()) @map("created_at")
@@ -142,38 +48,268 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
+  @@index([userId, tokenHash], map: "idx_user_token")
+  @@index([expiresAt], map: "idx_expires")
 }
 
-// ============= ENUMS =============
+// =====================================================
+// SCHOOL STRUCTURE
+// =====================================================
+
+model AcademicPeriod {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50) // e.g., "2024/2025 Semester 1"
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isActive  Boolean  @default(false) @map("is_active") // Only one active period at a time
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  classes        Class[]
+  classSchedules ClassSchedule[]
+
+  @@map("academic_periods")
+}
+
+model SchoolLevel {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(10) // SD, SMP, SMA
+  description String? @db.VarChar(100)
+
+  // Relations
+  classes Class[]
+
+  @@map("school_levels")
+}
+
+model Class {
+  id                 Int    @id @default(autoincrement())
+  name               String @db.VarChar(20) // "7A", "8B", "12 IPA 1"
+  schoolLevelId      Int    @map("school_level_id")
+  gradeLevel         Int    @map("grade_level") // 1-6 for SD, 7-9 for SMP, 10-12 for SMA
+  academicPeriodId   Int    @map("academic_period_id")
+  homeroomTeacherId  Int?   @map("homeroom_teacher_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  // Relations
+  schoolLevel      SchoolLevel    @relation(fields: [schoolLevelId], references: [id])
+  academicPeriod   AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
+  homeroomTeacher  User?          @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  students         Student[]
+  classSchedules   ClassSchedule[]
+
+  @@map("classes")
+  @@unique([name, academicPeriodId], map: "unique_class_period")
+}
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100) // "Matematika", "Bahasa Indonesia", etc.
+  code        String?  @unique @db.VarChar(10) // "MTK", "BIND", etc.
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  classSchedules ClassSchedule[]
+
+  @@map("subjects")
+}
+
+// =====================================================
+// PEOPLE
+// =====================================================
+
+model Teacher {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique @map("user_id")
+  teacherId  String   @unique @map("teacher_id") @db.VarChar(20) // NIP or employee ID
+  fullName   String   @map("full_name") @db.VarChar(100)
+  phone      String?  @db.VarChar(20)
+  address    String?  @db.Text
+  hireDate   DateTime? @map("hire_date") @db.Date
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classSchedules    ClassSchedule[]
+  attendanceSessions AttendanceSession[]
+  attendancesMarked Attendance[] @relation("TeacherMarked")
+
+  @@map("teachers")
+}
+
+model Student {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique @map("user_id")
+  studentId      String   @unique @map("student_id") @db.VarChar(20) // NISN or student ID
+  fullName       String   @map("full_name") @db.VarChar(100)
+  classId        Int      @map("class_id")
+  phone          String?  @db.VarChar(20)
+  address        String?  @db.Text
+  dateOfBirth    DateTime? @map("date_of_birth") @db.Date
+  parentPhone    String?  @map("parent_phone") @db.VarChar(20)
+  enrollmentDate DateTime? @map("enrollment_date") @db.Date
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class       Class         @relation(fields: [classId], references: [id])
+  faces       StudentFace[]
+  attendances Attendance[]
+
+  @@map("students")
+  @@index([classId], map: "idx_students_class")
+}
+
+// =====================================================
+// FACE RECOGNITION
+// =====================================================
+
+model StudentFace {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int      @map("student_id")
+  faceEmbedding       Json     @map("face_embedding") // Store face embeddings as JSON
+  imageFilename       String?  @map("image_filename") @db.VarChar(255) // Store image filename for backup/verification
+  confidenceThreshold Decimal  @default(0.8) @map("confidence_threshold") @db.Decimal(3, 2)
+  isActive            Boolean  @default(true) @map("is_active")
+  registeredAt        DateTime @default(now()) @map("registered_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_faces")
+  @@index([studentId, isActive], map: "idx_student_active")
+}
+
+// =====================================================
+// SCHEDULE & TIMETABLE
+// =====================================================
+
+model ClassSchedule {
+  id               Int     @id @default(autoincrement())
+  classId          Int     @map("class_id")
+  subjectId        Int     @map("subject_id")
+  teacherId        Int     @map("teacher_id")
+  dayOfWeek        Int     @map("day_of_week") @db.TinyInt // 1=Monday, 2=Tuesday, ..., 7=Sunday
+  startTime        DateTime @map("start_time") @db.Time
+  endTime          DateTime @map("end_time") @db.Time
+  room             String? @db.VarChar(50)
+  academicPeriodId Int     @map("academic_period_id")
+  isActive         Boolean @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  class            Class               @relation(fields: [classId], references: [id])
+  subject          Subject             @relation(fields: [subjectId], references: [id])
+  teacher          Teacher             @relation(fields: [teacherId], references: [id])
+  academicPeriod   AcademicPeriod      @relation(fields: [academicPeriodId], references: [id])
+  attendanceSessions AttendanceSession[]
+
+  @@map("class_schedules")
+  @@index([classId, dayOfWeek], map: "idx_class_day")
+  @@index([teacherId, dayOfWeek, startTime], map: "idx_teacher_schedule")
+  @@index([isActive, academicPeriodId], map: "idx_class_schedules_active")
+}
+
+// =====================================================
+// ATTENDANCE SYSTEM
+// =====================================================
+
+model AttendanceSession {
+  id              Int                    @id @default(autoincrement())
+  classScheduleId Int                    @map("class_schedule_id")
+  date            DateTime               @db.Date
+  status          AttendanceSessionStatus @default(scheduled)
+  startedAt       DateTime?              @map("started_at")
+  endedAt         DateTime?              @map("ended_at")
+  notes           String?                @db.Text
+  createdBy       Int                    @map("created_by") // teacher who created/manages the session
+  createdAt       DateTime               @default(now()) @map("created_at")
+
+  // Relations
+  classSchedule ClassSchedule @relation(fields: [classScheduleId], references: [id])
+  creator       Teacher       @relation(fields: [createdBy], references: [id])
+  attendances   Attendance[]
+
+  @@map("attendance_sessions")
+  @@unique([classScheduleId, date], map: "unique_session")
+  @@index([date, status], map: "idx_date_status")
+  @@index([date], map: "idx_attendance_session_date")
+}
+
+model Attendance {
+  id                  Int                @id @default(autoincrement())
+  attendanceSessionId Int                @map("attendance_session_id")
+  studentId           Int                @map("student_id")
+  status              AttendanceStatus
+  checkInTime         DateTime?          @map("check_in_time")
+  attendanceMethod    AttendanceMethod   @default(face_recognition) @map("attendance_method")
+  faceConfidence      Decimal?           @map("face_confidence") @db.Decimal(3, 2) // confidence score for face recognition
+  markedBy            Int?               @map("marked_by") // teacher ID if manually marked
+  notes               String?            @db.Text
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  attendanceSession AttendanceSession @relation(fields: [attendanceSessionId], references: [id])
+  student           Student           @relation(fields: [studentId], references: [id])
+  markedByTeacher   Teacher?          @relation("TeacherMarked", fields: [markedBy], references: [id])
+
+  @@map("attendances")
+  @@unique([attendanceSessionId, studentId], map: "unique_student_session")
+  @@index([studentId, createdAt], map: "idx_student_date")
+  @@index([attendanceSessionId, status], map: "idx_session_status")
+}
+
+// =====================================================
+// SYSTEM LOGS & AUDIT
+// =====================================================
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  action     String   @db.VarChar(100) // login, attendance_mark, face_register, etc.
+  entityType String?  @map("entity_type") @db.VarChar(50) // student, attendance, etc.
+  entityId   Int?     @map("entity_id")
+  details    Json?    // Additional details as JSON
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("activity_logs")
+  @@index([userId, action], map: "idx_user_action")
+  @@index([createdAt], map: "idx_created_at")
+}
+
+// =====================================================
+// ENUMS
+// =====================================================
 
 enum UserRole {
-  ADMIN
-  TEACHER
-  STUDENT
+  admin
+  teacher
+  student
 }
 
-enum Grade {
-  X    @map("10")
-  XI   @map("11") 
-  XII  @map("12")
-}
-
-enum Major {
-  IPA
-  IPS
-  BAHASA
-  UMUM
+enum AttendanceSessionStatus {
+  scheduled
+  ongoing
+  completed
+  cancelled
 }
 
 enum AttendanceStatus {
-  PRESENT
-  LATE
-  ABSENT
-  SICK
-  PERMIT
+  present
+  absent
+  late
+  excused
 }
 
 enum AttendanceMethod {
-  MANUAL
-  FACE_RECOGNITION
+  face_recognition
+  manual
 }
