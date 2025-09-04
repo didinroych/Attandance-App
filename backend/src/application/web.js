@@ -3,8 +3,10 @@ import { publicRouter } from "../route/public-api.js";
 import { errorMiddleware } from "../middleware/error-middleware.js";
 import { userRouter } from "../route/api.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 export const web = express();
+web.use(cookieParser());
 web.use(express.json());
 web.use(cors());
 

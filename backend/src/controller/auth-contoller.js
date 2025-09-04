@@ -1,5 +1,6 @@
 import authService from "../service/auth-service.js";
 
+
 const registerController = async(req, res, next) => {
     try {
         const result = await authService.register(req.body);
@@ -33,8 +34,50 @@ const loginController = async(req, res, next) => {
     }
 }
 
+const logoutController = async(req, res, next) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        await authService.logout(refreshToken);
+
+        res.clearCookie('refreshToken');
+
+        res.status(200).json({
+            data: { message: "Logout Successfull2" }
+        })
+
+    } catch (e) {
+        next(e)
+    }
+}
+
+const refreshToken = async(req, res, next) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(401).json({
+                errors: "Refresh token not found"
+            });
+        }
+
+        const result = await authService.renewAccesToken(refreshToken)
+
+        res.status(200).json({
+            data: {
+                accessToken: result.accessToken,
+                user: result.user
+            }
+        });
+    } catch (e) {
+        next(e);
+    }
+}
+
 
 export default {
     registerController,
-    loginController
+    loginController,
+    logoutController,
+    refreshToken
 }

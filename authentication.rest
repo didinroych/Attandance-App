@@ -3,8 +3,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "katamsaamam",
-    "email": "sasas@gmail.com",
+    "username": "sasa",
+    "email": "sasa@gmail.com",
     "password": "password"
 }
 
@@ -18,11 +18,17 @@ Accept: application/json
     "password": "password"
 }
 
+###
+POST http://localhost:3000/api/auth/refresh-token
+Content-Type: application/json
+Accept: application/json
+Cookie: refreshToken=saasa.as.sa-sa-asa
 
 
 
-
-
+// sasa : e39d5a9a-705f-4061-b14c-9919f8787989
+// katamsaamam : dcc28f3e-99b1-4923-8781-4e33fb18616e
+// dsdsd : 7070b563-0e14-4e66-94db-a63e398aa1ad
 
 
 

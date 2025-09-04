@@ -106,7 +106,80 @@ const login = async(request) => {
 }
 
 
+const logout = async(refreshToken) => {
+    if (!refreshToken) {
+        throw new ResponseError(400, "Refresh Token Required");
+    }
+
+    await prismaClient.refreshToken.updateMany({
+        where: {
+            tokenHash: refreshToken
+        },
+        data: {
+            isRevoked: true
+        }
+    });
+
+    return { message: "Logout Successful" };
+
+}
+
+const renewAccesToken = async(refreshToken) => {
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
+
+        const storedRefreshToken = await prismaClient.refreshToken.findFirst({
+            where: {
+                tokenHash: decoded.tokenHash,
+                userId: decoded.id,
+                isRevoked: false,
+                expiresAt: {
+                    gte: new Date()
+                }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        role: true
+                    }
+
+                }
+            }
+        });
+
+        if (!storedRefreshToken) {
+            throw new ResponseError(403, "Invalid Refresh Token");
+        }
+
+        const newAccessToken = jwt.sign({
+            id: storedRefreshToken.user.id,
+            username: storedRefreshToken.user.username,
+            role: storedRefreshToken.user.role
+        }, process.env.ACCESS_TOKEN, { expiresIn: '30m' })
+
+        return {
+            accessToken: newAccessToken,
+            user: {
+                id: storedRefreshToken.user.id,
+                username: storedRefreshToken.user.username,
+                role: storedRefreshToken.user.role
+            }
+        };
+
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+            throw new ResponseError(403, "Invalid or expired refresh token");
+        }
+        throw error;
+    }
+}
+
+
 export default {
     register,
-    login
+    login,
+    logout,
+    renewAccesToken
 }

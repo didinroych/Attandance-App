@@ -28,6 +28,7 @@ const updateUserValidation = Joi.object({
     grade: Joi.string().max(4).optional()
 })
 
+
 export {
     registerUserValidation,
     loginUserValidation,
