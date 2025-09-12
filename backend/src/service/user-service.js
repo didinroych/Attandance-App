@@ -1,134 +1,123 @@
 import { validate } from "../validation/validation.js";
 import {
     getUserValidation,
-    loginUserValidation,
-    registerUserValidation,
+    updateRoleByAdmin,
+    updateStudentProfileValidation,
+    updateTeacherProfileValidation,
     updateUserValidation
 } from "../validation/user-validation.js";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { config } from 'dotenv';
-import { request, response } from "express";
 
-const register = async(request) => {
-    const user = validate(registerUserValidation, request);
+const getRoleSpecificData = async(userId, role) => {
+    if (role === "student") {
+        const student = await prismaClient.student.findFirst({
+            where: {
+                userId: userId
+            },
+            select: {
+                studentId: true,
+                fullName: true,
+                classId: true,
+                phone: true,
+                address: true,
+                dateOfBirth: true,
+                parentPhone: true
+            }
+        });
 
-    const countUser = await prismaClient.user.count({
-        where: {
-            username: user.username
-        }
-    });
+        return student ? {
+            studentId: student.studentId,
+            fullName: student.fullName,
+            classId: student.classId,
+            phone: student.phone,
+            address: student.address,
+            dateOfBirth: student.dateOfBirth,
+            parentPhone: student.parentPhone
+        } : {};
 
-    if (countUser === 1) {
-        throw new ResponseError(400, "Username already exists");
+    } else if (role === "teacher") {
+        const teacher = await prismaClient.teacher.findFirst({
+            where: {
+                userId: userId
+            },
+            select: {
+                teacherId: true,
+                fullName: true,
+                phone: true,
+                address: true
+            }
+        });
+
+        return teacher ? {
+            teacherId: teacher.teacherId,
+            fullName: teacher.fullName,
+            phone: teacher.phone,
+            address: teacher.address
+        } : {};
     }
 
-    user.password = await bcrypt.hash(user.password, 10);
+    return {};
+};
 
-    return prismaClient.user.create({
-        data: user,
-        select: {
-            username: true,
-            fullName: true
-        }
-    });
-}
+const getUser = async(request) => {
+    const validatedUser = validate(getUserValidation, request);
 
-const login = async(request) => {
-    const loginRequest = validate(loginUserValidation, request);
-
-    const user = await prismaClient.user.findUnique({
+    const user = await prismaClient.user.findFirst({
         where: {
-            username: loginRequest.username
+            id: validatedUser.id
         },
         select: {
             id: true,
             username: true,
-            password: true,
-            role: true
+            email: true,
+            role: true,
         }
     });
 
     if (!user) {
-        throw new ResponseError(401, "Username or password wrong");
+        throw new ResponseError(404, "User not found");
     }
 
-    const isPasswordValid = await bcrypt.compare(loginRequest.password, user.password);
-    if (!isPasswordValid) {
-        throw new ResponseError(401, "Username or password wrong");
-    }
-
-    const token = jwt.sign(user, process.env.ACCESS_TOKEN)
-
-    const refreshToken = await prismaClient.refreshToken.upsert({
-        where: {
-            userId: user.id
-        },
-        update: {
-            token: token,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            isRevoked: false
-        },
-        create: {
-            userId: user.id,
-            token: token,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-        }
-    });
-
+    const roleSpecificData = await getRoleSpecificData(user.id, user.role);
 
     return {
         user: {
             id: user.id,
-            role: user.role
-        },
-        token: refreshToken.token
-    };
-}
-
-const get = async(userIdentifier) => {
-    userIdentifier = validate(getUserValidation, userIdentifier);
-
-    const user = await prismaClient.user.findUnique({
-        where: {
-            id: userIdentifier
-        },
-        select: {
-            username: true,
-            fullName: true,
-            email: true,
-            phone: true,
-            role: true
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            ...roleSpecificData
         }
-    });
+    };
+};
 
-    if (!user) {
-        throw new ResponseError(404, "user is not found");
-    }
-
-    return user;
-}
-
-const update = async(request) => {
+const updateUser = async(request) => {
     const user = validate(updateUserValidation, request);
 
-    const totalUserInDatabase = await prismaClient.user.count({
+    const existingUser = await prismaClient.user.findFirst({
         where: {
             id: user.id
+        },
+        select: {
+            id: true,
+            username: true,
+            email: true,
+            password: true
         }
     });
 
-    if (totalUserInDatabase !== 1) {
-        throw new ResponseError(404, "user is not found");
+    if (!existingUser) {
+        throw new ResponseError(404, "User is not Found");
     }
 
     const data = {};
-    if (user.fullName) { data.fullName = user.fullName; }
-    if (user.password) { data.password = await bcrypt.hash(user.password, 10); }
+
     if (user.username) { data.username = user.username; }
     if (user.email) { data.email = user.email; }
+    if (user.password) { data.password = await bcrypt.hash(user.password, 10); }
 
     return prismaClient.user.update({
         where: {
@@ -138,61 +127,99 @@ const update = async(request) => {
         select: {
             id: true,
             username: true,
-            fullName: true,
             email: true
         }
     })
 }
 
 const updateStudent = async(request) => {
-    const user = validate(updateUserValidation, request);
+    const user = validate(updateStudentProfileValidation, request);
 
-    const existingUser = await prismaClient.user.findUnique({
+    const existingUser = await prismaClient.student.findFirst({
         where: {
-            id: user.id
+            userId: user.id
         },
         select: {
-            role: true
+            phone: true,
+            address: true,
+            parentPhone: true,
+            dateOfBirth: true
         }
     })
-
     if (!existingUser) {
         throw new ResponseError(404, "User is not found");
     }
 
-    console.log(existingUser.role)
-    if (existingUser.role !== "STUDENT") {
-        throw new ResponseError(403, `User is not Student`);
-    }
-
-
     const data = {};
-    data.userId = user.id
-    if (user.nis) { data.nis = user.nis }
-    if (user.grade) { data.grade = user.grade }
+    if (user.phone) { data.phone = user.phone; }
+    if (user.address) { data.address = user.address; }
+    if (user.parentPhone) { data.parentPhone = user.parentPhone; }
+    if (user.dateOfBirth) { data.dateOfBirth = user.dateOfBirth; }
 
-    return prismaClient.student.upsert({
-        where: {
-            userId: user.id
-        },
-        create: data,
-        update: data,
+    return prismaClient.student.update({
+        where: { userId: user.id },
+        data: data,
         select: {
             userId: true,
-            nis: true,
-            grade: true
+            studentId: true,
+            fullName: true,
+            classId: true,
+            phone: true,
+            address: true,
+            parentPhone: true,
+            dateOfBirth: true,
+            enrollmentDate: true
         }
     })
 }
 
 const updateTeacher = async(request) => {
-    const user = validate(updateUserValidation, request);
+    const user = validate(updateTeacherProfileValidation, request);
 
-    const existingUser = await prismaClient.user.findUnique({
+    const existingUser = await prismaClient.teacher.findFirst({
+        where: {
+            userId: user.id
+        },
+        select: {
+            phone: true,
+            address: true,
+            hireDate: true
+        }
+    });
+
+    if (!existingUser) {
+        throw new ResponseError(404, "User is not found");
+    }
+    const data = {};
+
+    if (user.phone) { data.phone = user.phone; }
+    if (user.address) { data.address = user.address; }
+
+    return prismaClient.teacher.update({
+        where: {
+            userId: user.id
+        },
+        data: data,
+        select: {
+            userId: true,
+            teacherId: true,
+            fullName: true,
+            phone: true,
+            address: true,
+            hireDate: true
+        }
+    })
+}
+
+const updateRoleUser = async(req) => {
+    const user = validate(updateRoleByAdmin, req);
+
+    const existingUser = await prismaClient.user.findFirst({
         where: {
             id: user.id
         },
         select: {
+            id: true,
             role: true
         }
     })
@@ -200,59 +227,34 @@ const updateTeacher = async(request) => {
     if (!existingUser) {
         throw new ResponseError(404, "User is not found");
     }
-    if (existingUser.role !== "TEACHER") {
-        throw new ResponseError(403, "User is not TEACHER");
+    if (existingUser.role === user.newRole) {
+        throw new ResponseError(400, `User is already ${user.newRole}`);
     }
 
     const data = {};
-    data.userId = user.id
-    if (user.nip) { data.nip = user.nip }
 
-    return prismaClient.teacher.upsert({
+    if (user.role) { data.role = user.role }
+
+    return prismaClient.user.update({
         where: {
-            userId: user.id
+            id: user.id
         },
-        create: data,
-        update: data,
+        data: {
+            role: user.newRole
+        },
         select: {
-            userId: true,
-            nip: true
+            id: true,
+            role: true
         }
     })
+
 }
 
-// const logout = async(username) => {
-//     username = validate(getUserValidation, username);
-
-//     const user = await prismaClient.user.findUnique({
-//         where: {
-//             username: username
-//         }
-//     });
-
-//     if (!user) {
-//         throw new ResponseError(404, "user is not found");
-//     }
-
-//     return prismaClient.user.update({
-//         where: {
-//             username: username
-//         },
-//         data: {
-//             token: null
-//         },
-//         select: {
-//             username: true
-//         }
-//     })
-// }
 
 export default {
-    register,
-    login,
-    get,
-    update,
+    getUser,
+    updateUser,
     updateStudent,
     updateTeacher,
-    // logout
+    updateRoleUser
 }

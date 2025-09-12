@@ -1,31 +1,9 @@
 import userService from "../service/user-service.js";
 
-const register = async(req, res, next) => {
-    try {
-        const result = await userService.register(req.body);
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-}
-
-const login = async(req, res, next) => {
-    try {
-        const result = await userService.login(req.body);
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-}
-
-const getCurrentUser = async(req, res, next) => {
+const getUserProfile = async(req, res, next) => {
     try {
         const userId = req.user.id;
-        const result = await userService.get(userId);
+        const result = await userService.getUser(userId);
         res.status(200).json({
             data: result
         });
@@ -34,13 +12,14 @@ const getCurrentUser = async(req, res, next) => {
     }
 }
 
-const update = async(req, res, next) => {
+const updatedUser = async(req, res, next) => {
     try {
         const userId = req.user.id;
         const request = req.body;
         request.id = userId;
 
-        const result = await userService.update(request);
+        const result = await userService.updateUser(request);
+        console.log(result)
         res.status(200).json({
             data: result
         });
@@ -48,6 +27,7 @@ const update = async(req, res, next) => {
         next(e);
     }
 }
+
 
 const updateStudent = async(req, res, next) => {
     try {
@@ -91,10 +71,8 @@ const logout = async(req, res, next) => {
 }
 
 export default {
-    register,
-    login,
-    getCurrentUser,
-    update,
+    getUserProfile,
+    updatedUser,
     updateStudent,
     updateTeacher,
     logout

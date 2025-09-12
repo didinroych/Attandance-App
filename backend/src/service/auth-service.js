@@ -1,4 +1,3 @@
-import { request, response } from "express";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { loginUserValidation, registerUserValidation } from "../validation/auth-validation.js"
