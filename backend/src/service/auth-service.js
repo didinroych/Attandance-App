@@ -2,6 +2,7 @@ import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import { loginUserValidation, registerUserValidation } from "../validation/auth-validation.js"
 import { validate } from "../validation/validation.js"
+import { getRoleSpecificData } from "./user-service.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -70,17 +71,35 @@ const login = async(request) => {
         throw new ResponseError(401, "Username or Password Invalid")
     }
 
+    const roleSpecificData = await getRoleSpecificData(user.id, user.role);
+    let minimalRoleData = {};
+    if (user.role === 'student' && roleSpecificData) {
+        minimalRoleData = {
+            studentId: roleSpecificData.studentId,
+            classId: roleSpecificData.classId
+        };
+    } else if (user.role === 'teacher' && roleSpecificData) {
+        console.log('roleSpecificData.id:', roleSpecificData.id);
+        minimalRoleData = {
+            idteacher: roleSpecificData.id,
+            teacherId: roleSpecificData.teacherId
+        };
+        console.log('minimalRoleData after assignment:', minimalRoleData);
+    }
+
     const accessTokenPayload = {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        ...minimalRoleData
     }
     const accessToken = jwt.sign(accessTokenPayload, process.env.ACCESS_TOKEN, { expiresIn: '30m' })
 
     const refreshTokenPayload = {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        ...minimalRoleData
     }
     const refreshToken = jwt.sign(refreshTokenPayload, process.env.REFRESH_TOKEN, { expiresIn: '7d' })
 
@@ -92,7 +111,6 @@ const login = async(request) => {
             isRevoked: false
         }
     });
-
     return {
         user: {
             id: user.id,
@@ -152,10 +170,27 @@ const renewAccesToken = async(refreshToken) => {
             throw new ResponseError(403, "Invalid Refresh Token");
         }
 
+        const roleSpecificData = await getRoleSpecificData(storedRefreshToken.user.id, storedRefreshToken.user.role);
+        let minimalRoleData = {};
+        if (storedRefreshToken.user.role === 'student' && roleSpecificData) {
+            minimalRoleData = {
+                studentId: roleSpecificData.studentId,
+                classId: roleSpecificData.classId
+            };
+        } else if (storedRefreshToken.user.role === 'teacher' && roleSpecificData) {
+            console.log('roleSpecificData.id:', roleSpecificData.id);
+            minimalRoleData = {
+                idteacher: roleSpecificData.id,
+                teacherId: roleSpecificData.teacherId
+            };
+            console.log('minimalRoleData after assignment:', minimalRoleData);
+        }
+
         const newAccessToken = jwt.sign({
             id: storedRefreshToken.user.id,
             username: storedRefreshToken.user.username,
-            role: storedRefreshToken.user.role
+            role: storedRefreshToken.user.role,
+            ...minimalRoleData
         }, process.env.ACCESS_TOKEN, { expiresIn: '30m' })
 
         return {
@@ -163,7 +198,8 @@ const renewAccesToken = async(refreshToken) => {
             user: {
                 id: storedRefreshToken.user.id,
                 username: storedRefreshToken.user.username,
-                role: storedRefreshToken.user.role
+                role: storedRefreshToken.user.role,
+                ...minimalRoleData
             }
         };
 

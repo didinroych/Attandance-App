@@ -3,7 +3,7 @@ import userController from "../controller/user-controller.js";
 import authContoller from "../controller/auth-contoller.js";
 import adminController from "../controller/admin-controller.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
-
+import classSessionController from "../controller/class-session-controller.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -16,6 +16,7 @@ userRouter.patch('/api/users/current/teacher', userController.updateTeacher);
 userRouter.post('/api/auth/logout', authContoller.logoutController);
 userRouter.get('/api/users/profile', userController.getUserProfile);
 userRouter.put('/api/users/update', userController.updatedUser);
+userRouter.get("/api/users/class-schedule", classSessionController.getClassSessions);
 
 //Student API
 userRouter.put('/api/users/update/student', userController.updateStudent);

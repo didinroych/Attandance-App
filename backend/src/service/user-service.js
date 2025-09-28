@@ -11,13 +11,15 @@ import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const getRoleSpecificData = async(userId, role) => {
+export const getRoleSpecificData = async(userId, role) => {
+    console.log("Ini Get Role", userId)
     if (role === "student") {
         const student = await prismaClient.student.findFirst({
             where: {
                 userId: userId
             },
             select: {
+                id: true,
                 studentId: true,
                 fullName: true,
                 classId: true,
@@ -29,6 +31,7 @@ const getRoleSpecificData = async(userId, role) => {
         });
 
         return student ? {
+            profileId: student.id,
             studentId: student.studentId,
             fullName: student.fullName,
             classId: student.classId,
@@ -44,6 +47,7 @@ const getRoleSpecificData = async(userId, role) => {
                 userId: userId
             },
             select: {
+                id: true,
                 teacherId: true,
                 fullName: true,
                 phone: true,
@@ -52,6 +56,7 @@ const getRoleSpecificData = async(userId, role) => {
         });
 
         return teacher ? {
+            profileId: teacher.id,
             teacherId: teacher.teacherId,
             fullName: teacher.fullName,
             phone: teacher.phone,
@@ -63,11 +68,13 @@ const getRoleSpecificData = async(userId, role) => {
 };
 
 const getUser = async(request) => {
+    console.log("Ini Id Request", request)
     const validatedUser = validate(getUserValidation, request);
+
 
     const user = await prismaClient.user.findFirst({
         where: {
-            id: validatedUser.id
+            id: validatedUser
         },
         select: {
             id: true,
@@ -76,6 +83,8 @@ const getUser = async(request) => {
             role: true,
         }
     });
+
+    console.log("Ini", user.id)
 
     if (!user) {
         throw new ResponseError(404, "User not found");

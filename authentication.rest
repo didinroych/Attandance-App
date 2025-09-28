@@ -3,8 +3,8 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "sasa",
-    "email": "sasa@gmail.com",
+    "username": "kayaknya",
+    "email": "kayaknya@gmail.com",
     "password": "password"
 }
 
@@ -14,7 +14,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "username": "sasa",
+    "username": "kayaknya",
     "password": "password"
 }
 
