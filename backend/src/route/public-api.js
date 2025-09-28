@@ -9,7 +9,8 @@ publicRouter.get('/ping', healthController.ping);
 //authentication
 publicRouter.post('/api/auth/register', authContoller.registerController);
 publicRouter.post('/api/auth/login', authContoller.loginController);
-publicRouter.post('/api/auth/refresh-token', authContoller.refreshToken);
+publicRouter.post('/api/auth/logout', authContoller.logoutController);
+publicRouter.post('/api/auth/access-token', authContoller.refreshToken);
 
 export {
     publicRouter

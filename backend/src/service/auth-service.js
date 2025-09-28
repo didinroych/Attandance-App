@@ -127,6 +127,16 @@ const logout = async(refreshToken) => {
     if (!refreshToken) {
         throw new ResponseError(400, "Refresh Token Required");
     }
+    const existingToken = await prismaClient.refreshToken.findFirst({
+        where: {
+            tokenHash: refreshToken,
+            isRevoked: false
+        }
+    });
+
+    if (!existingToken) {
+        throw new ResponseError(401, "Invalid or already revoked refresh token");
+    }
 
     await prismaClient.refreshToken.updateMany({
         where: {
@@ -147,7 +157,7 @@ const renewAccesToken = async(refreshToken) => {
 
         const storedRefreshToken = await prismaClient.refreshToken.findFirst({
             where: {
-                tokenHash: decoded.tokenHash,
+                tokenHash: refreshToken,
                 userId: decoded.id,
                 isRevoked: false,
                 expiresAt: {
@@ -167,7 +177,7 @@ const renewAccesToken = async(refreshToken) => {
         });
 
         if (!storedRefreshToken) {
-            throw new ResponseError(403, "Invalid Refresh Token");
+            throw new ResponseError(403, "Invalid or expired refresh token");
         }
 
         const roleSpecificData = await getRoleSpecificData(storedRefreshToken.user.id, storedRefreshToken.user.role);

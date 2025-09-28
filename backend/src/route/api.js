@@ -13,7 +13,7 @@ userRouter.patch('/api/users/current/student', userController.updateStudent);
 userRouter.patch('/api/users/current/teacher', userController.updateTeacher);
 
 //user API
-userRouter.post('/api/auth/logout', authContoller.logoutController);
+
 userRouter.get('/api/users/profile', userController.getUserProfile);
 userRouter.put('/api/users/update', userController.updatedUser);
 userRouter.get("/api/users/class-schedule", classSessionController.getClassSessions);
