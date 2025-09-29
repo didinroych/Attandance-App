@@ -122,7 +122,6 @@ const login = async(request) => {
     };
 }
 
-
 const logout = async(refreshToken) => {
     if (!refreshToken) {
         throw new ResponseError(400, "Refresh Token Required");

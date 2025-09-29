@@ -163,7 +163,6 @@ const updateStudent = async(request) => {
     if (user.phone) { data.phone = user.phone; }
     if (user.address) { data.address = user.address; }
     if (user.parentPhone) { data.parentPhone = user.parentPhone; }
-    if (user.dateOfBirth) { data.dateOfBirth = user.dateOfBirth; }
 
     return prismaClient.student.update({
         where: { userId: user.id },
