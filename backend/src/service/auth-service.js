@@ -81,7 +81,7 @@ const login = async(request) => {
     } else if (user.role === 'teacher' && roleSpecificData) {
         console.log('roleSpecificData.id:', roleSpecificData.id);
         minimalRoleData = {
-            idteacher: roleSpecificData.id,
+            profileId: roleSpecificData.profileId,
             teacherId: roleSpecificData.teacherId
         };
         console.log('minimalRoleData after assignment:', minimalRoleData);
@@ -189,7 +189,7 @@ const renewAccesToken = async(refreshToken) => {
         } else if (storedRefreshToken.user.role === 'teacher' && roleSpecificData) {
             console.log('roleSpecificData.id:', roleSpecificData.id);
             minimalRoleData = {
-                idteacher: roleSpecificData.id,
+                profileId: roleSpecificData.profileId,
                 teacherId: roleSpecificData.teacherId
             };
             console.log('minimalRoleData after assignment:', minimalRoleData);

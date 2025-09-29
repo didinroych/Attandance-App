@@ -17,6 +17,8 @@ userRouter.patch('/api/users/current/teacher', userController.updateTeacher);
 userRouter.get('/api/users/profile', userController.getUserProfile); //done
 userRouter.put('/api/users/update', userController.updatedUser); //done
 userRouter.get("/api/users/class-schedule", classSessionController.getClassSessions);
+userRouter.post('/api/users/class-sessions', classSessionController.createClassSession);
+
 
 //Student API
 userRouter.put('/api/users/update/student', userController.updateStudent);
