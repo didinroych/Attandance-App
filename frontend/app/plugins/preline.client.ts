@@ -1,4 +1,4 @@
-import { useRouter } from "#app";
+import { useRouter } from "vue-router";
 
 // Optional third-party libraries
 import $ from "jquery";
@@ -19,9 +19,9 @@ window.VanillaCalendarPro = VanillaCalendarPro;
 import("preline/dist");
 
 export default defineNuxtPlugin(() => {
-  const router = useRouter();
+    const router = useRouter();
 
-  router.afterEach(async () => {
-    setTimeout(() => window.HSStaticMethods.autoInit());
-  });
+    router.afterEach(async () => {
+        setTimeout(() => window.HSStaticMethods.autoInit());
+    });
 });
