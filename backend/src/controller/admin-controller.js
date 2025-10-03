@@ -8,7 +8,6 @@ const updateRoleUser = async(req, res, next) => {
                 error: "Acces denied"
             });
         }
-
         const userId = parseInt(req.params.id);
         const { newRole } = req.body;
         const adminId = req.user.id;

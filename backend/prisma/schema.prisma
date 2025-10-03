@@ -243,7 +243,7 @@ model Attendance {
   attendanceSessionId Int                @map("attendance_session_id")
   studentId           Int                @map("student_id")
   status              AttendanceStatus
-  checkInTime         DateTime?          @map("check_in_time")
+  checkInTime         DateTime?          @map("check_in_time") //Ini hapus aja nanti, ga guna juga
   attendanceMethod    AttendanceMethod   @default(face_recognition) @map("attendance_method")
   faceConfidence      Decimal?           @map("face_confidence") @db.Decimal(3, 2) // confidence score for face recognition
   markedBy            Int?               @map("marked_by") // teacher ID if manually marked

@@ -12,8 +12,22 @@ const createClassSessionVal = Joi.object({
     date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
     notes: Joi.string().optional().allow('', null)
 });
+const updateClassSessionVal = Joi.object({
+    sessionId: Joi.number().integer().positive().required(),
+    profileId: Joi.number().integer().positive().required(),
+    attendances: Joi.array().items(
+            Joi.object({
+                attendanceId: Joi.number().integer().positive().required(),
+                status: Joi.string()
+                    .valid('present', 'absent', 'late', 'excused')
+                    .required(),
+                notes: Joi.string().max(255).optional().allow(null, '')
+            })
+        ).min(1).required() // minimal 1 item harus ada
+});
 
 export {
     getUserClassSessions,
-    createClassSessionVal
+    createClassSessionVal,
+    updateClassSessionVal
 }
