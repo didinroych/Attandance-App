@@ -75,7 +75,8 @@ const login = async(request) => {
     let minimalRoleData = {};
     if (user.role === 'student' && roleSpecificData) {
         minimalRoleData = {
-            studentId: roleSpecificData.studentId,
+            profileId: roleSpecificData.profileId,
+            // studentId: roleSpecificData.studentId,
             classId: roleSpecificData.classId
         };
     } else if (user.role === 'teacher' && roleSpecificData) {
@@ -183,7 +184,8 @@ const renewAccesToken = async(refreshToken) => {
         let minimalRoleData = {};
         if (storedRefreshToken.user.role === 'student' && roleSpecificData) {
             minimalRoleData = {
-                studentId: roleSpecificData.studentId,
+                profileId: roleSpecificData.profileId,
+                // studentId: roleSpecificData.studentId,
                 classId: roleSpecificData.classId
             };
         } else if (storedRefreshToken.user.role === 'teacher' && roleSpecificData) {

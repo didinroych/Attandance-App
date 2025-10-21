@@ -1,0 +1,139 @@
+{
+    "data": {
+        "date": "2025-10-02",
+        "dayOfWeek": 4,
+        "data": [{
+                "id": 73,
+                "classId": 16,
+                "dayOfWeek": 4,
+                "startTime": "1970-01-01T07:00:00.000Z",
+                "endTime": "1970-01-01T08:30:00.000Z",
+                "room": "A101",
+                "subject": {
+                    "id": 12,
+                    "name": "Pendidikan Agama Islam"
+                },
+                "teacher": {
+                    "id": 1,
+                    "fullName": "Dr. Siti Nurhaliza"
+                },
+                "class": {
+                    "id": 16,
+                    "name": "Class 10A"
+                },
+                "session": {
+                    "hasSession": false,
+                    "message": "No session created for this week"
+                }
+            },
+            {
+                "id": 74,
+                "classId": 16,
+                "dayOfWeek": 4,
+                "startTime": "1970-01-01T08:30:00.000Z",
+                "endTime": "1970-01-01T10:00:00.000Z",
+                "room": "LAB2",
+                "subject": {
+                    "id": 4,
+                    "name": "Fisika"
+                },
+                "teacher": {
+                    "id": 1,
+                    "fullName": "Dr. Siti Nurhaliza"
+                },
+                "class": {
+                    "id": 16,
+                    "name": "Class 10A"
+                },
+                "session": {
+                    "hasSession": false,
+                    "message": "No session created for this week"
+                }
+            },
+            {
+                "id": 75,
+                "classId": 16,
+                "dayOfWeek": 4,
+                "startTime": "1970-01-01T10:15:00.000Z",
+                "endTime": "1970-01-01T11:45:00.000Z",
+                "room": "A101",
+                "subject": {
+                    "id": 13,
+                    "name": "Geografi"
+                },
+                "teacher": {
+                    "id": 1,
+                    "fullName": "Dr. Siti Nurhaliza"
+                },
+                "class": {
+                    "id": 16,
+                    "name": "Class 10A"
+                },
+                "session": {
+                    "hasSession": false,
+                    "message": "No session created for this week"
+                }
+            },
+            {
+                "id": 76,
+                "classId": 16,
+                "dayOfWeek": 4,
+                "startTime": "1970-01-01T12:30:00.000Z",
+                "endTime": "1970-01-01T14:00:00.000Z",
+                "room": "ART1",
+                "subject": {
+                    "id": 14,
+                    "name": "Seni Budaya"
+                },
+                "teacher": {
+                    "id": 1,
+                    "fullName": "Dr. Siti Nurhaliza"
+                },
+                "class": {
+                    "id": 16,
+                    "name": "Class 10A"
+                },
+                "session": {
+                    "hasSession": false,
+                    "message": "No session created for this week"
+                }
+            }
+        ]
+    }
+}
+
+
+POST / api / teacher / sessions
+
+{
+    "data": {
+        "sessionId": 13,
+        "className": "Class 10A",
+        "subjectName": "Sejarah",
+        "date": "2025-10-21T00:00:00.000Z",
+        "status": "ongoing",
+        "totalStudents": 3,
+        "attendances": [{
+                "attendanceId": 8,
+                "studentId": 2,
+                "studentName": "Ahmad Rizki Pratama",
+                "studentNumber": "STD2025001",
+                "status": "absent"
+            },
+            {
+                "attendanceId": 9,
+                "studentId": 5,
+                "studentName": "Doni Surahman",
+                "studentNumber": "STD2025002",
+                "status": "absent"
+            },
+            {
+                "attendanceId": 10,
+                "studentId": 6,
+                "studentName": "Setya Prayogo",
+                "studentNumber": "STD2025022",
+                "status": "absent"
+            }
+        ]
+    }
+}
