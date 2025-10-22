@@ -94,11 +94,21 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> getClassSchedule(String token) async {
+  // Future<Map<String, dynamic>> getClassSchedule(String token) async {
+  //   final response = await http.get(
+  //     Uri.parse('$_baseUrl/users/class-schedule'),
+  //     headers: _getHeaders(token),
+  //   );
+  //   return _handleResponse(response);
+  // }
+
+  Future<Map<String, dynamic>> getWeeklySchedule(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/users/class-schedule'),
+      // URL ENDPOINT BARU
+      Uri.parse('$_baseUrl/users/schedule/weekly'),
       headers: _getHeaders(token),
     );
+    // _handleResponse tidak perlu diubah
     return _handleResponse(response);
   }
 
