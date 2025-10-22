@@ -49,6 +49,8 @@ class _ScheduleTabState extends State<ScheduleTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Jadwal Pelajaran')),
       body: FutureBuilder<Map<String, dynamic>>(
@@ -83,19 +85,14 @@ class _ScheduleTabState extends State<ScheduleTab> {
               final endTime = _formatTime(schedule['endTime'] ?? '');
 
               return Card(
-                margin: const EdgeInsets.symmetric(
-                  vertical: 8.0,
-                  horizontal: 8.0,
-                ),
-                elevation: 3,
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.blue[100],
+                    backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
                     child: Text(
                       subject.isNotEmpty ? subject[0] : '?',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),

@@ -5,6 +5,7 @@ import 'package:mobile/screens/tabs/home_tab.dart';
 import 'package:mobile/screens/tabs/manage_attendance_tab.dart';
 import 'package:mobile/screens/tabs/profile_tab.dart';
 import 'package:mobile/screens/tabs/schedule_tab.dart';
+
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {

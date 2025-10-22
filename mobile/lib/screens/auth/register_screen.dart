@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/providers/auth_provider.dart';
+import 'package:mobile/widgets/custom_button.dart';
+import 'package:mobile/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -71,27 +73,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 40),
 
                 // TextField Username
-                TextFormField(
+                CustomTextField(
                   controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
+                  hintText: 'Username',
+                  prefixIcon: Icons.person,
                   validator: (value) =>
                       value!.isEmpty ? 'Username tidak boleh kosong' : null,
                 ),
                 const SizedBox(height: 16),
 
                 // TextField Email
-                TextFormField(
+                CustomTextField(
                   controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
-                  ),
+                  hintText: 'Email',
+                  prefixIcon: Icons.email,
                   validator: (value) {
                     if (value!.isEmpty) return 'Email tidak boleh kosong';
                     if (!value.contains('@')) return 'Email tidak valid';
@@ -101,14 +96,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
 
                 // TextField Password
-                TextFormField(
+                CustomTextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                  ),
+                  hintText: 'Password',
+                  prefixIcon: Icons.lock,
+                  isPassword: true,
                   validator: (value) {
                     if (value!.isEmpty) return 'Password tidak boleh kosong';
                     if (value.length < 6) return 'Password minimal 6 karakter';
@@ -132,14 +124,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ? const CircularProgressIndicator()
                     : SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: CustomButton(
+                          text: 'Register',
                           onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Register'),
+                          isLoading: _isLoading,
                         ),
                       ),
                 const SizedBox(height: 16),

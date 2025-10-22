@@ -6,7 +6,7 @@ class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   String? _token;
-  String? _refreshToken; // BARU: Simpan refresh token
+  String? _refreshToken;
   String? _role;
   Map<String, dynamic>? _userProfile;
   bool _isLoading = true;
@@ -22,7 +22,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> initAuth() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
-    _refreshToken = prefs.getString('refreshToken'); // BARU
+    _refreshToken = prefs.getString('refreshToken');
     _role = prefs.getString('role');
 
     if (_token != null) {
@@ -41,28 +41,24 @@ class AuthProvider extends ChangeNotifier {
       // Ambil data dari response baru
       _token = response['body']['data']['accessToken'];
       _role = response['body']['data']['user']['role'];
-      _refreshToken = response['refreshToken']; // BARU
+      _refreshToken = response['refreshToken'];
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', _token!);
       await prefs.setString('role', _role!);
       if (_refreshToken != null) {
-        // BARU
         await prefs.setString('refreshToken', _refreshToken!);
       }
 
-      // Setelah login berhasil, langsung ambil data profile
       await fetchProfile();
       notifyListeners();
     } catch (e) {
-      // Lempar error untuk ditangani oleh UI
       rethrow;
     }
   }
 
   // Fungsi Register
   Future<void> register(String username, String email, String password) async {
-    // ... (tidak ada perubahan)
     try {
       await _apiService.register(username, email, password);
     } catch (e) {
@@ -72,17 +68,19 @@ class AuthProvider extends ChangeNotifier {
 
   // Fungsi ambil profil
   Future<void> fetchProfile() async {
-    // ... (tidak ada perubahan)
     if (_token == null) return;
     try {
       final response = await _apiService.getProfile(_token!);
-      _userProfile = response['data']['user']; // Simpan semua data profil
+      _userProfile = response['data']['user'];
       notifyListeners();
     } catch (e) {
       if (e.toString().contains('401') ||
-          e.toString().contains('Unauthorized')) {
+          e.toString().contains('Unauthorized') ||
+          e.toString().toLowerCase().contains('jwt expired')) {
+        print("Token expired or invalid, logging out automatically...");
         await logout();
       }
+
       print("Error fetching profile: $e");
     }
   }
