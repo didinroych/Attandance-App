@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/providers/auth_provider.dart';
 import 'package:mobile/screens/auth/register_screen.dart';
+import 'package:mobile/widgets/custom_button.dart';
+import 'package:mobile/widgets/custom_textfield.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -30,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         listen: false,
       ).login(_usernameController.text, _passwordController.text);
-      // Navigasi akan ditangani oleh AuthCheck di main.dart
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceFirst("Exception: ", "");
@@ -53,6 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Icon(
+                  Icons.school,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
+                ),
+                const SizedBox(height: 24),
+
+                // -------------------------------------
                 Text(
                   'Selamat Datang',
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -64,28 +73,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // TextField Username
-                TextFormField(
+                CustomTextField(
                   controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
+                  hintText: 'Username',
+                  prefixIcon: Icons.person_outline,
                   validator: (value) =>
                       value!.isEmpty ? 'Username tidak boleh kosong' : null,
                 ),
                 const SizedBox(height: 16),
 
-                // TextField Password
-                TextFormField(
+                CustomTextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                  ),
+                  hintText: 'Password',
+                  prefixIcon: Icons.lock_outline,
+                  isPassword: true,
                   validator: (value) =>
                       value!.isEmpty ? 'Password tidak boleh kosong' : null,
                 ),
@@ -96,26 +97,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
 
-                // Button Login
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Login'),
-                        ),
-                      ),
+                CustomButton(
+                  text: 'Login',
+                  isLoading: _isLoading,
+                  onPressed: _submit,
+                ),
                 const SizedBox(height: 16),
 
                 Row(

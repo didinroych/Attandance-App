@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Ganti dengan IP/domain Anda jika menjalankan di HP (jangan pakai localhost)
+  // Ganti dengan IP/domain Anda jika menjalankan di HP
   static const String _baseUrl = "http://localhost:3000/api";
 
   // Helper untuk membuat header
@@ -17,8 +17,7 @@ class ApiService {
     return headers;
   }
 
-  // MODIFIKASI: login
-  // Sekarang mengembalikan Map yang berisi 'body' dan 'refreshToken'
+  // Login
   Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/login'),
@@ -51,7 +50,7 @@ class ApiService {
     }
   }
 
-  // BARU: logout
+  // logout
   Future<Map<String, dynamic>> logout(String refreshToken) async {
     // Buat header khusus untuk logout
     final headers = {
@@ -70,13 +69,11 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // POST /api/auth/register
   Future<Map<String, dynamic>> register(
     String username,
     String email,
     String password,
   ) async {
-    // ... (tidak ada perubahan)
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/register'),
       headers: _getHeaders(null),
@@ -89,9 +86,7 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // GET /api/users/profile
   Future<Map<String, dynamic>> getProfile(String token) async {
-    // ... (tidak ada perubahan)
     final response = await http.get(
       Uri.parse('$_baseUrl/users/profile'),
       headers: _getHeaders(token),
@@ -99,9 +94,7 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // GET /api/users/class-schedule
   Future<Map<String, dynamic>> getClassSchedule(String token) async {
-    // ... (tidak ada perubahan)
     final response = await http.get(
       Uri.parse('$_baseUrl/users/class-schedule'),
       headers: _getHeaders(token),
@@ -111,7 +104,6 @@ class ApiService {
 
   // Helper untuk memproses response
   Map<String, dynamic> _handleResponse(http.Response response) {
-    // ... (tidak ada perubahan)
     final body = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
