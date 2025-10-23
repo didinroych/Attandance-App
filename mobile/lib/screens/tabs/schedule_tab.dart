@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/providers/auth_provider.dart';
 import 'package:mobile/screens/tabs/history_tab.dart';
-import 'package:mobile/services/api_service.dart';
+
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -14,7 +14,6 @@ class ScheduleTab extends StatefulWidget {
 
 class _ScheduleTabState extends State<ScheduleTab> {
   late Future<Map<String, dynamic>> _scheduleFuture;
-  final ApiService _apiService = ApiService();
 
   late DateTime _today;
   late List<DateTime> _weekDays;
@@ -27,8 +26,10 @@ class _ScheduleTabState extends State<ScheduleTab> {
     _weekDays = _generateWeekDays(_today);
     _selectedDay = _today.weekday;
 
-    final token = Provider.of<AuthProvider>(context, listen: false).token;
-    _scheduleFuture = _apiService.getWeeklySchedule(token!);
+    _scheduleFuture = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).getWeeklySchedule();
   }
 
   List<DateTime> _generateWeekDays(DateTime today) {
@@ -297,9 +298,41 @@ class _ScheduleTabState extends State<ScheduleTab> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Error memuat jadwal: ${snapshot.error}'),
-            );
+            String errorMessage = snapshot.error.toString();
+            errorMessage = errorMessage.replaceAll("Exception: ", "");
+            errorMessage = errorMessage.replaceAll("ApiException: ", "");
+
+            if (errorMessage.contains('Tunggu approval')) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.admin_panel_settings_outlined,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        errorMessage,
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Akun Anda sedang ditinjau dan belum terhubung ke jadwal kelas.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
           }
 
           if (!snapshot.hasData || snapshot.data!['data'] == null) {
