@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mobile/services/api_exception.dart';
 
 class ApiService {
   // Ganti dengan IP/domain Anda jika menjalankan di HP
@@ -86,6 +87,22 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  // Refresh Access token
+  Future<Map<String, dynamic>> refreshAccessToken(String refreshToken) async {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Cookie': 'refreshToken=$refreshToken', // Sesuai API Anda
+    };
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/access-token'),
+      headers: headers,
+    );
+    // Kita pakai _handleResponse agar error-nya juga konsisten
+    return _handleResponse(response);
+  }
+
   Future<Map<String, dynamic>> getProfile(String token) async {
     final response = await http.get(
       Uri.parse('$_baseUrl/users/profile'),
@@ -115,10 +132,17 @@ class ApiService {
   // Helper untuk memproses response
   Map<String, dynamic> _handleResponse(http.Response response) {
     final body = jsonDecode(response.body);
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     } else {
-      throw Exception(body['message'] ?? 'An error occurred');
+      // Periksa apakah ini error autentikasi
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw AuthException(body['message'] ?? 'Unauthorized');
+      } else {
+        // Error server biasa
+        throw ApiException(body['message'] ?? 'An error occurred');
+      }
     }
   }
 }
