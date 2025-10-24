@@ -9,7 +9,6 @@ import {
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 export const getRoleSpecificData = async(userId, role) => {
     console.log("Ini Get Role", userId)
@@ -26,7 +25,12 @@ export const getRoleSpecificData = async(userId, role) => {
                 phone: true,
                 address: true,
                 dateOfBirth: true,
-                parentPhone: true
+                parentPhone: true,
+                class: {
+                    select: {
+                        name: true
+                    }
+                }
             }
         });
 
@@ -35,6 +39,7 @@ export const getRoleSpecificData = async(userId, role) => {
             studentId: student.studentId,
             fullName: student.fullName,
             classId: student.classId,
+            className: student.class.name,
             phone: student.phone,
             address: student.address,
             dateOfBirth: student.dateOfBirth,
@@ -257,8 +262,6 @@ const updateRoleUser = async(req) => {
     })
 
 }
-
-
 export default {
     getUser,
     updateUser,

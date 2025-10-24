@@ -31,9 +31,28 @@ model User {
   student       Student?
   activityLogs  ActivityLog[]
   homeroomClass Class[]        @relation("HomeroomTeacher")
+  passwordResetOtps PasswordResetOtp[]
 
   @@map("users")
   @@index([role, isActive], map: "idx_users_role_active")
+}
+
+model PasswordResetOtp {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  email     String   @db.VarChar(100)
+  otpCode   String   @map("otp_code") @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_otps")
+  @@index([email, otpCode], map: "idx_email_otp")
+  @@index([expiresAt], map: "idx_expires")
 }
 
 model RefreshToken {

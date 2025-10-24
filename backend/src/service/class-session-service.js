@@ -877,32 +877,52 @@ const getClassSessionsSummary = async(request) => {
 
     const subjectIds = subjects.map(s => s.subjectId);
 
-    const attendanceData = await prismaClient.attendance.groupBy({
-        by: ['status'],
+    const attendanceData = await prismaClient.attendance.findMany({
         where: {
-            studentId: validated.id,
+            studentId: validated.profileId,
             attendanceSession: {
                 classSchedule: {
                     subjectId: { in: subjectIds }
                 }
             }
         },
-        _count: { status: true }
+        select: {
+            status: true,
+            attendanceSession: {
+                select: {
+                    classSchedule: {
+                        select: {
+                            subjectId: true
+                        }
+                    }
+                }
+            }
+        }
     });
+    const countBySubjectAndStatus = attendanceData.reduce((acc, item) => {
+        const subjectId = item.attendanceSession.classSchedule.subjectId;
+        const status = item.status.toLowerCase(); // Ensure lowercase
 
-    const countByStatus = attendanceData.reduce((acc, item) => {
-        acc[item.status] = item._count.status;
+        if (!acc[subjectId]) {
+            acc[subjectId] = {};
+        }
+        acc[subjectId][status] = (acc[subjectId][status] || 0) + 1;
+
         return acc;
     }, {});
 
-    return subjects.map(subject => ({
-        subjectName: subject.subject.name,
-        time: `${subject.startTime.toTimeString().slice(0, 5)} - ${subject.endTime.toTimeString().slice(0, 5)}`,
-        present: countByStatus['present'] || 0,
-        excused: countByStatus['excused'] || 0,
-        late: countByStatus['late'] || 0,
-        absent: countByStatus['absent'] || 0
-    }));
+    return subjects.map(subject => {
+        const counts = countBySubjectAndStatus[subject.subjectId] || {};
+        return {
+            subjectIds: subject.subjectId,
+            subjectName: subject.subject.name,
+            time: `${subject.startTime.toTimeString().slice(0, 5)} - ${subject.endTime.toTimeString().slice(0, 5)}`,
+            present: counts['present'] || 0,
+            excused: counts['excused'] || 0,
+            late: counts['late'] || 0,
+            absent: counts['absent'] || 0
+        };
+    });
 };
 
 const getClassListClassTeacher = async(request) => {

@@ -4,6 +4,7 @@ import authContoller from "../controller/auth-contoller.js";
 import adminController from "../controller/admin-controller.js";
 import { authMiddleware } from "../middleware/auth-middleware.js";
 import classSessionController from "../controller/class-session-controller.js";
+import academicPeriodeCon from "../controller/academic-periode-con.js";
 
 const userRouter = new express.Router();
 userRouter.use(authMiddleware);
@@ -56,6 +57,9 @@ userRouter.patch('/api/teacher/profile', userController.updateTeacher);
 // =============
 // Update user role | @body { role: string } 
 userRouter.patch('/api/admin/users/:id/role', adminController.updateRoleUser);
+
+
+userRouter.get('/api/users/academic-periode', academicPeriodeCon.getAcademicPeriodCon);
 
 export {
     userRouter
