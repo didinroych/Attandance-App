@@ -120,31 +120,12 @@ const getClassScheduleByDate = async(request) => {
         throw new ResponseError(403, "Invalid role");
     }
 
-    if (schedules.length === 0) {
-        return {
-            date: date,
-            dayOfWeek: dayOfWeek,
-            data: []
-        };
-    }
+    // Get sessions for this date
     const scheduleIds = schedules.map(s => s.id);
-
     const sessions = await prismaClient.attendanceSession.findMany({
         where: {
             classScheduleId: { in: scheduleIds },
-            date: {
-                gte: startOfWeek,
-                lte: endOfWeek
-            }
-        },
-        select: {
-            id: true,
-            classScheduleId: true,
-            date: true,
-            status: true,
-            startedAt: true,
-            endedAt: true,
-            createdAt: true
+            date: targetDate
         }
     });
 
@@ -153,91 +134,65 @@ const getClassScheduleByDate = async(request) => {
         sessionMap.set(session.classScheduleId, session);
     });
 
+    // For students, get their attendance status
     let attendanceMap = new Map();
     if (role === 'student') {
         const sessionIds = sessions.map(s => s.id);
-
         if (sessionIds.length > 0) {
             const attendances = await prismaClient.attendance.findMany({
                 where: {
                     attendanceSessionId: { in: sessionIds },
                     studentId: profileId
-                },
-                select: {
-                    id: true,
-                    attendanceSessionId: true,
-                    studentId: true,
-                    status: true,
-                    checkInTime: true,
-                    attendanceMethod: true
                 }
             });
-
             attendances.forEach(att => {
                 attendanceMap.set(att.attendanceSessionId, att);
             });
         }
     }
 
-    const data = schedules.map(schedule => {
+    return schedules.map(schedule => {
         const session = sessionMap.get(schedule.id);
+        const baseSchedule = {
+            scheduleId: schedule.id,
+            subjectName: schedule.subject.name,
+            teacherName: schedule.teacher.fullName,
+            className: schedule.class.name,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            room: schedule.room
+        };
 
-        let sessionData = null;
         if (session) {
-            sessionData = {
+            baseSchedule.session = {
                 id: session.id,
                 status: session.status,
-                date: session.date,
                 startedAt: session.startedAt,
-                endedAt: session.endedAt,
-                createdAt: session.createdAt,
-                hasSession: true
+                endedAt: session.endedAt
             };
 
             if (role === 'student') {
                 const attendance = attendanceMap.get(session.id);
-                sessionData.hasAttendance = !!attendance;
-                sessionData.attendance = attendance ? {
-                    id: attendance.id,
-                    status: attendance.status,
-                    checkInTime: attendance.checkInTime,
-                    attendanceMethod: attendance.attendanceMethod
-                } : null;
+                if (attendance) {
+                    baseSchedule.session.myAttendance = {
+                        id: attendance.id,
+                        status: attendance.status,
+                        checkInTime: attendance.checkInTime
+                    };
+                }
             }
-        } else {
-            sessionData = {
-                hasSession: false,
-                message: role === 'student' ?
-                    "Session not active yet" : "No session created for this week"
-            };
         }
 
-        return {
-            id: schedule.id,
-            classId: schedule.classId,
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            room: schedule.room,
-            subject: schedule.subject,
-            teacher: schedule.teacher,
-            class: schedule.class,
-            session: sessionData
-        };
+        return baseSchedule;
     });
-
-    return {
-        date: date,
-        dayOfWeek: dayOfWeek,
-        data: data
-    };
 };
 
 const getWeeklySchedule = async(request) => {
     const { startDate, profileId, role } = request;
 
-    const start = getStartOfWeek(new Date(startDate || new Date()));
-    const end = getEndOfWeek(new Date(startDate || new Date()));
+    const targetDate = new Date(startDate);
+    const start = getStartOfWeek(targetDate);
+    const end = getEndOfWeek(targetDate);
 
     const daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
 
@@ -247,13 +202,27 @@ const getWeeklySchedule = async(request) => {
         schedules = await prismaClient.classSchedule.findMany({
             where: {
                 teacherId: profileId,
-                dayOfWeek: { in: daysOfWeek },
                 isActive: true
             },
             include: {
-                subject: { select: { id: true, name: true } },
-                teacher: { select: { id: true, fullName: true } },
-                class: { select: { id: true, name: true } }
+                subject: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                teacher: {
+                    select: {
+                        id: true,
+                        fullName: true
+                    }
+                },
+                class: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             },
             orderBy: [
                 { dayOfWeek: 'asc' },
@@ -273,13 +242,27 @@ const getWeeklySchedule = async(request) => {
         schedules = await prismaClient.classSchedule.findMany({
             where: {
                 classId: student.classId,
-                dayOfWeek: { in: daysOfWeek },
                 isActive: true
             },
             include: {
-                subject: { select: { id: true, name: true } },
-                teacher: { select: { id: true, fullName: true } },
-                class: { select: { id: true, name: true } }
+                subject: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                teacher: {
+                    select: {
+                        id: true,
+                        fullName: true
+                    }
+                },
+                class: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
             },
             orderBy: [
                 { dayOfWeek: 'asc' },
@@ -325,9 +308,19 @@ const getWeeklySchedule = async(request) => {
     };
 };
 
+/**
+ * ========================================
+ * UNIFIED ENDPOINT FOR BOTH ROLES
+ * Get schedule by academic period
+ * - Teachers: See all their schedules with session summaries
+ * - Students: See their class schedules with detailed attendance per session
+ * Both can access inactive academic periods (historical data)
+ * ========================================
+ */
 const getScheduleByAcademicPeriod = async(request) => {
     const { academicPeriodId, profileId, role, userId, classId } = request;
 
+    // Get academic period info
     const academicPeriod = await prismaClient.academicPeriod.findUnique({
         where: {
             id: academicPeriodId
@@ -346,13 +339,17 @@ const getScheduleByAcademicPeriod = async(request) => {
     }
 
     let schedules;
+    let result;
 
+    // ========================================
+    // TEACHER: Get schedules with session summaries
+    // ========================================
     if (role === 'teacher') {
         schedules = await prismaClient.classSchedule.findMany({
             where: {
                 teacherId: profileId,
-                academicPeriodId: academicPeriodId,
-                isActive: true
+                academicPeriodId: academicPeriodId
+                    // Removed isActive filter - show all schedules from this period
             },
             include: {
                 subject: {
@@ -374,11 +371,6 @@ const getScheduleByAcademicPeriod = async(request) => {
                         name: true,
                         gradeLevel: true
                     }
-                },
-                _count: {
-                    select: {
-                        attendanceSessions: true
-                    }
                 }
             },
             orderBy: [
@@ -386,28 +378,103 @@ const getScheduleByAcademicPeriod = async(request) => {
                 { startTime: 'asc' }
             ]
         });
-    } else if (role === 'student') {
 
-        let studentClassId = classId;
+        if (schedules.length === 0) {
+            throw new ResponseError(404, "No schedules found for this academic period");
+        }
 
-        if (!studentClassId) {
-            const student = await prismaClient.student.findUnique({
-                where: { userId: userId }, // Changed from id to userId
-                select: { classId: true }
-            });
+        // Get all sessions for these schedules
+        const scheduleIds = schedules.map(s => s.id);
+        const sessions = await prismaClient.attendanceSession.findMany({
+            where: {
+                classScheduleId: { in: scheduleIds }
+            },
+            include: {
+                attendances: {
+                    select: {
+                        status: true
+                    }
+                }
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
 
-            if (!student) {
-                throw new ResponseError(404, "Student not found");
+        // Group sessions by classScheduleId
+        const sessionsBySchedule = sessions.reduce((acc, session) => {
+            if (!acc[session.classScheduleId]) {
+                acc[session.classScheduleId] = [];
             }
 
-            studentClassId = student.classId;
+            // Calculate attendance summary for this session
+            const attendances = session.attendances;
+            const summary = {
+                present: attendances.filter(a => a.status === 'present').length,
+                absent: attendances.filter(a => a.status === 'absent').length,
+                late: attendances.filter(a => a.status === 'late').length,
+                excused: attendances.filter(a => a.status === 'excused').length
+            };
+
+            acc[session.classScheduleId].push({
+                sessionId: session.id,
+                date: session.date,
+                status: session.status,
+                startedAt: session.startedAt,
+                endedAt: session.endedAt,
+                summary: summary
+            });
+
+            return acc;
+        }, {});
+
+        // Build response for teacher
+        const groupedSchedules = schedules.reduce((acc, schedule) => {
+            const scheduleSessions = sessionsBySchedule[schedule.id] || [];
+
+            acc[schedule.id] = {
+                id: schedule.id,
+                className: schedule.class.name,
+                gradeLevel: schedule.class.gradeLevel,
+                subjectName: schedule.subject.name,
+                subjectCode: schedule.subject.code,
+                teacherId: schedule.teacherId,
+                teacherName: schedule.teacher.fullName,
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                room: schedule.room,
+                totalSessions: scheduleSessions.length,
+                sessions: scheduleSessions
+            };
+            return acc;
+        }, {});
+
+        result = {
+            academicPeriod: {
+                id: academicPeriod.id,
+                name: academicPeriod.name,
+                startDate: academicPeriod.startDate,
+                endDate: academicPeriod.endDate,
+                isActive: academicPeriod.isActive
+            },
+            totalSchedules: schedules.length,
+            schedules: groupedSchedules
+        };
+    }
+    // ========================================
+    // STUDENT: Get schedules with detailed attendance
+    // ========================================
+    else if (role === 'student') {
+        if (!classId) {
+            throw new ResponseError(400, "Student must have a class");
         }
 
         schedules = await prismaClient.classSchedule.findMany({
             where: {
-                classId: studentClassId, // Use the classId
-                academicPeriodId: academicPeriodId,
-                isActive: true
+                classId: classId,
+                academicPeriodId: academicPeriodId
+                    // Removed isActive filter - show all schedules from this period
             },
             include: {
                 subject: {
@@ -429,11 +496,6 @@ const getScheduleByAcademicPeriod = async(request) => {
                         name: true,
                         gradeLevel: true
                     }
-                },
-                _count: {
-                    select: {
-                        attendanceSessions: true
-                    }
                 }
             },
             orderBy: [
@@ -441,44 +503,127 @@ const getScheduleByAcademicPeriod = async(request) => {
                 { startTime: 'asc' }
             ]
         });
+
+        if (schedules.length === 0) {
+            throw new ResponseError(404, "No schedules found for this academic period");
+        }
+
+        // Get all sessions with student's attendance
+        const scheduleIds = schedules.map(s => s.id);
+        const sessions = await prismaClient.attendanceSession.findMany({
+            where: {
+                classScheduleId: { in: scheduleIds }
+            },
+            include: {
+                attendances: {
+                    where: {
+                        studentId: profileId // Only this student's attendance
+                    },
+                    select: {
+                        id: true,
+                        status: true,
+                        checkInTime: true,
+                        notes: true
+                    }
+                }
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
+
+        // Group sessions by classScheduleId
+        const sessionsBySchedule = sessions.reduce((acc, session) => {
+            if (!acc[session.classScheduleId]) {
+                acc[session.classScheduleId] = [];
+            }
+
+            // Student's attendance for this session (should be 0 or 1 record)
+            const myAttendance = session.attendances[0] || null;
+
+            acc[session.classScheduleId].push({
+                sessionId: session.id,
+                date: session.date,
+                status: session.status,
+                myAttendance: myAttendance ? {
+                    attendanceId: myAttendance.id,
+                    status: myAttendance.status,
+                    checkInTime: myAttendance.checkInTime,
+                    notes: myAttendance.notes
+                } : null
+            });
+
+            return acc;
+        }, {});
+
+        // Calculate summary by schedule
+        const summaryBySchedule = {};
+        Object.keys(sessionsBySchedule).forEach(scheduleId => {
+            const scheduleSessions = sessionsBySchedule[scheduleId];
+            const summary = {
+                present: 0,
+                absent: 0,
+                late: 0,
+                excused: 0
+            };
+
+            scheduleSessions.forEach(session => {
+                if (session.myAttendance) {
+                    const status = session.myAttendance.status.toLowerCase();
+                    if (summary.hasOwnProperty(status)) {
+                        summary[status]++;
+                    }
+                }
+            });
+
+            summaryBySchedule[scheduleId] = summary;
+        });
+
+        // Build response for student
+        const groupedSchedules = schedules.reduce((acc, schedule) => {
+            const scheduleSessions = sessionsBySchedule[schedule.id] || [];
+            const summary = summaryBySchedule[schedule.id] || {
+                present: 0,
+                absent: 0,
+                late: 0,
+                excused: 0
+            };
+
+            acc[schedule.id] = {
+                id: schedule.id,
+                className: schedule.class.name,
+                gradeLevel: schedule.class.gradeLevel,
+                subjectName: schedule.subject.name,
+                subjectCode: schedule.subject.code,
+                teacherId: schedule.teacherId,
+                teacherName: schedule.teacher.fullName,
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                room: schedule.room,
+                totalSessions: scheduleSessions.length,
+                sessions: scheduleSessions,
+                summary: summary
+            };
+            return acc;
+        }, {});
+
+        result = {
+            academicPeriod: {
+                id: academicPeriod.id,
+                name: academicPeriod.name,
+                startDate: academicPeriod.startDate,
+                endDate: academicPeriod.endDate,
+                isActive: academicPeriod.isActive
+            },
+            totalSchedules: schedules.length,
+            schedules: groupedSchedules
+        };
     } else {
         throw new ResponseError(403, "Invalid role");
     }
-    const groupedSchedules = schedules.reduce((acc, schedule) => {
-        const day = schedule.dayOfWeek;
-        if (!acc[day]) {
-            acc[day] = [];
-        }
-        acc[day].push({
-            id: schedule.id,
-            classId: schedule.classId,
-            className: schedule.class.name,
-            gradeLevel: schedule.class.gradeLevel,
-            subjectId: schedule.subjectId,
-            subjectName: schedule.subject.name,
-            subjectCode: schedule.subject.code,
-            teacherId: schedule.teacherId,
-            teacherName: schedule.teacher.fullName,
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            room: schedule.room,
-            totalSessions: schedule._count.attendanceSessions
-        });
-        return acc;
-    }, {});
 
-    return {
-        academicPeriod: {
-            id: academicPeriod.id,
-            name: academicPeriod.name,
-            startDate: academicPeriod.startDate,
-            endDate: academicPeriod.endDate,
-            isActive: academicPeriod.isActive
-        },
-        totalSchedules: schedules.length,
-        schedules: groupedSchedules
-    };
+    return result;
 };
 
 const createClassSession = async(request) => {
