@@ -1,18 +1,7 @@
 import { ResponseError } from "../error/response-error.js";
 import sessionService from "../services/session.service.js";
 
-/**
- * ============================================
- * SESSION CONTROLLER
- * Handles HTTP requests for session endpoints
- * ============================================
- */
-
-/**
- * Create new attendance session
- * POST /api/teacher/sessions
- * Body: { classScheduleId, date, notes? }
- */
+// POST /api/teacher/sessions || Body: { classScheduleId, date, notes? }
 const createSessionController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher") {
@@ -34,10 +23,7 @@ const createSessionController = async(req, res, next) => {
     }
 };
 
-/**
- * Get session details
- * GET /api/teacher/sessions/:id
- */
+// GET /api/teacher/sessions/:id
 const getSessionController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher") {
@@ -65,10 +51,7 @@ const getSessionController = async(req, res, next) => {
     }
 };
 
-/**
- * Get sessions list for a class schedule
- * GET /api/teacher/schedule/:scheduleId/sessions
- */
+// GET /api/teacher/schedule/:scheduleId/sessions
 const getSessionsListController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher") {
@@ -96,11 +79,7 @@ const getSessionsListController = async(req, res, next) => {
     }
 };
 
-/**
- * Update session status
- * PATCH /api/teacher/sessions/:id/status
- * Body: { status: 'ongoing' | 'completed' | 'cancelled' }
- */
+// PATCH /api/teacher/sessions/:id/status || Body: { status: 'ongoing' | 'completed' | 'cancelled' }
 const updateSessionStatusController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher") {
@@ -129,72 +108,7 @@ const updateSessionStatusController = async(req, res, next) => {
     }
 };
 
-/**
- * End/complete a session
- * POST /api/teacher/sessions/:id/end
- */
-const endSessionController = async(req, res, next) => {
-    try {
-        if (req.user.role !== "teacher") {
-            throw new ResponseError(403, "Only teachers can end sessions");
-        }
-
-        const sessionId = parseInt(req.params.id);
-
-        if (isNaN(sessionId)) {
-            throw new ResponseError(400, "Invalid session ID");
-        }
-
-        const request = {
-            sessionId,
-            profileId: req.user.profileId
-        };
-
-        const result = await sessionService.endSession(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
-/**
- * Cancel a session
- * POST /api/teacher/sessions/:id/cancel
- */
-const cancelSessionController = async(req, res, next) => {
-    try {
-        if (req.user.role !== "teacher") {
-            throw new ResponseError(403, "Only teachers can cancel sessions");
-        }
-
-        const sessionId = parseInt(req.params.id);
-
-        if (isNaN(sessionId)) {
-            throw new ResponseError(400, "Invalid session ID");
-        }
-
-        const request = {
-            sessionId,
-            profileId: req.user.profileId
-        };
-
-        const result = await sessionService.cancelSession(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
-/**
- * Get active sessions
- * GET /api/student/sessions/active OR GET /api/teacher/sessions/active
- */
+// GET /api/users/sessions/active
 const getActiveSessionsController = async(req, res, next) => {
     try {
         if (req.user.role !== "student" && req.user.role !== "teacher") {
@@ -216,11 +130,7 @@ const getActiveSessionsController = async(req, res, next) => {
     }
 };
 
-/**
- * Get session statistics (Admin only)
- * GET /api/admin/sessions/statistics
- * Query: startDate?, endDate?, classId?, teacherId?
- */
+// GET /api/admin/sessions/statistics || Query: startDate?, endDate?, classId?, teacherId?
 const getSessionStatisticsController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {
@@ -249,8 +159,6 @@ export default {
     getSessionController,
     getSessionsListController,
     updateSessionStatusController,
-    endSessionController,
-    cancelSessionController,
     getActiveSessionsController,
     getSessionStatisticsController
 };

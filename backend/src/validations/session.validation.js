@@ -123,33 +123,11 @@ const updateSessionStatusSchema = Joi.object({
         })
 });
 
-/**
- * Validation for ending a session
- */
-const endSessionSchema = Joi.object({
-    sessionId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'number.base': 'Session ID must be a number',
-            'number.positive': 'Session ID must be positive',
-            'any.required': 'Session ID is required'
-        }),
 
-    profileId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'any.required': 'Profile ID is required'
-        })
-});
 
 export {
     createSessionSchema,
     getSessionSchema,
     getSessionsListSchema,
     updateSessionStatusSchema,
-    endSessionSchema
 };

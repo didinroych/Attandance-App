@@ -318,6 +318,7 @@ enum AttendanceSessionStatus {
   scheduled
   ongoing
   completed
+  finalized
   cancelled
 }
 

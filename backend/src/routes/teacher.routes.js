@@ -9,28 +9,21 @@ teacherRouter.use(authMiddleware);
 
 //session (7)
 teacherRouter.post('/teacher/sessions',
-    sessionController.createSessionController);
+    sessionController.createSessionController); //done
 teacherRouter.get('/teacher/sessions/:id',
-    sessionController.getSessionController);
+    sessionController.getSessionController); //done
 teacherRouter.get('/teacher/schedule/:scheduleId/sessions',
-    sessionController.getSessionsListController);
+    sessionController.getSessionsListController); //done
 teacherRouter.patch('/teacher/sessions/:id/status',
     sessionController.updateSessionStatusController);
-teacherRouter.post('/teacher/sessions/:id/end',
-    sessionController.endSessionController);
-teacherRouter.post('/teacher/sessions/:id/cancel',
-    sessionController.cancelSessionController);
-
 //schedule (1)
-teacherRouter.get('/api/teacher/schedules',
-    scheduleController.getTeacherSchedulesController);
+teacherRouter.get('/teacher/schedules',
+    scheduleController.getTeacherSchedulesController); //done
 
-//attendance (3)
-teacherRouter.post('/api/teacher/sessions/:sessionId/attendance',
-    attendanceController.markAttendanceController);
-teacherRouter.patch('/api/teacher/attendance/:id',
-    attendanceController.markSingleAttendanceController);
-teacherRouter.get('/api/teacher/attendance/report/export',
+//attendance (3) => check attendance service logic again
+teacherRouter.post('/teacher/sessions/:sessionId/attendance',
+    attendanceController.markAttendanceController); //done 
+teacherRouter.get('/teacher/attendance/report/export',
     attendanceController.exportAttendanceReportController);
 
 //Total ada 11 endpoint

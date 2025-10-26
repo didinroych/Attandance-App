@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     getScheduleByDateSchema,
     getWeeklyScheduleSchema,
@@ -20,6 +20,9 @@ import {
     mergeSchedulesWithSessions
 } from "../helpers/schedule.helper.js";
 
+const convertToPrismaDay = (jsDay) => {
+    return jsDay === 0 ? 7 : jsDay;
+};
 /**
  * ============================================
  * SCHEDULE SERVICE

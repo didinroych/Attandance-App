@@ -1,10 +1,7 @@
 import { ResponseError } from "../error/response-error.js";
 import attendanceService from "../services/attendance.service.js";
 
-/**
- * Mark attendance (bulk update)
- * POST /api/teacher/sessions/:sessionId/attendance
- */
+// POST /api/teacher/sessions/:sessionId/attendance
 const markAttendanceController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher") {
@@ -33,43 +30,7 @@ const markAttendanceController = async(req, res, next) => {
     }
 };
 
-/**
- * Mark single attendance
- * PATCH /api/teacher/attendance/:id
- */
-const markSingleAttendanceController = async(req, res, next) => {
-    try {
-        if (req.user.role !== "teacher") {
-            throw new ResponseError(403, "Only teachers can mark attendance");
-        }
-
-        const attendanceId = parseInt(req.params.id);
-
-        if (isNaN(attendanceId)) {
-            throw new ResponseError(400, "Invalid attendance ID");
-        }
-
-        const request = {
-            attendanceId,
-            status: req.body.status,
-            notes: req.body.notes,
-            profileId: req.user.profileId
-        };
-
-        const result = await attendanceService.markSingleAttendance(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
-/**
- * Student check-in
- * POST /api/student/attendance/check-in
- */
+// POST /api/student/attendance/check-in == Ini G aktif
 const studentCheckInController = async(req, res, next) => {
     try {
         if (req.user.role !== "student") {
@@ -93,10 +54,7 @@ const studentCheckInController = async(req, res, next) => {
     }
 };
 
-/**
- * Get attendance by session
- * GET /api/users/attendance/session/:sessionId
- */
+// GET /api/users/attendance/session/:sessionId
 const getAttendanceBySessionController = async(req, res, next) => {
     try {
         const sessionId = parseInt(req.params.sessionId);
@@ -121,10 +79,7 @@ const getAttendanceBySessionController = async(req, res, next) => {
     }
 };
 
-/**
- * Get student attendance history
- * GET /api/users/attendance/student/:studentId/history
- */
+// GET /api/users/attendance/student/:studentId/history
 const getStudentAttendanceHistoryController = async(req, res, next) => {
     try {
         const studentId = parseInt(req.params.studentId);
@@ -156,10 +111,7 @@ const getStudentAttendanceHistoryController = async(req, res, next) => {
     }
 };
 
-/**
- * Get attendance summary
- * GET /api/users/attendance/summary/:type/:id
- */
+// GET /api/users/attendance/summary/:type/:id
 const getAttendanceSummaryController = async(req, res, next) => {
     try {
         const { type, id } = req.params;
@@ -204,10 +156,7 @@ const getAttendanceSummaryController = async(req, res, next) => {
     }
 };
 
-/**
- * Export attendance report
- * GET /api/teacher/attendance/report/export
- */
+// GET /api/teacher/attendance/report/export
 const exportAttendanceReportController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher" && req.user.role !== "admin") {
@@ -241,10 +190,7 @@ const exportAttendanceReportController = async(req, res, next) => {
     }
 };
 
-/**
- * Get attendance analytics
- * GET /api/admin/attendance/analytics
- */
+//GET /api/admin/attendance/analytics
 const getAttendanceAnalyticsController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {
@@ -280,7 +226,6 @@ const getAttendanceAnalyticsController = async(req, res, next) => {
 
 export default {
     markAttendanceController,
-    markSingleAttendanceController,
     studentCheckInController,
     getAttendanceBySessionController,
     getStudentAttendanceHistoryController,

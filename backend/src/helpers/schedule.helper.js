@@ -1,12 +1,4 @@
 import { prismaClient } from "../application/database.js";
-
-/**
- * ============================================
- * SCHEDULE HELPER FUNCTIONS
- * Utility functions for schedule operations
- * ============================================
- */
-
 /**
  * Check for time conflicts
  * Prevents scheduling conflicts for teachers, classes, and rooms

@@ -1,6 +1,6 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     getUserClassSessions,
     createClassSessionVal,

@@ -1,11 +1,10 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { loginUserValidation, registerUserValidation } from "../validation/auth-validation.js"
-import { validate } from "../validation/validation.js"
+import { loginUserValidation, registerUserValidation } from "../validations/auth-validation.js"
+import { validate } from "../validations/validation.js"
 import { getRoleSpecificData } from "./user-service.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
 
 const register = async(request) => {
     const user = validate(registerUserValidation, request);
@@ -94,7 +93,7 @@ const login = async(request) => {
         role: user.role,
         ...minimalRoleData
     }
-    const accessToken = jwt.sign(accessTokenPayload, process.env.ACCESS_TOKEN, { expiresIn: '30m' })
+    const accessToken = jwt.sign(accessTokenPayload, process.env.ACCESS_TOKEN, { expiresIn: '120m' })
 
     const refreshTokenPayload = {
         id: user.id,
@@ -202,7 +201,7 @@ const renewAccesToken = async(refreshToken) => {
             username: storedRefreshToken.user.username,
             role: storedRefreshToken.user.role,
             ...minimalRoleData
-        }, process.env.ACCESS_TOKEN, { expiresIn: '30m' })
+        }, process.env.ACCESS_TOKEN, { expiresIn: '120m' })
 
         return {
             accessToken: newAccessToken,
@@ -221,7 +220,6 @@ const renewAccesToken = async(refreshToken) => {
         throw error;
     }
 }
-
 
 export default {
     register,

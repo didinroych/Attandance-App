@@ -1,9 +1,8 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     markAttendanceSchema,
-    markSingleAttendanceSchema,
     studentCheckInSchema,
     getAttendanceBySessionSchema,
     getStudentAttendanceHistorySchema,
@@ -16,17 +15,6 @@ import {
     validateSessionActive
 } from "../helpers/attendance.helper.js";
 
-/**
- * ============================================
- * ATTENDANCE SERVICE
- * Handles all attendance-related business logic
- * ============================================
- */
-
-/**
- * Mark attendance (Bulk update)
- * Teacher marks multiple students at once for a session
- */
 const markAttendance = async(request) => {
     const validated = validate(markAttendanceSchema, request);
     const { sessionId, attendances, profileId } = validated;
@@ -44,8 +32,13 @@ const markAttendance = async(request) => {
         }
     });
 
+
     if (!session) {
         throw new ResponseError(404, "Session not found");
+    }
+
+    if (session.status === 'finalized') {
+        throw new ResponseError(403, "This session already finalized, can't be edit!! Please contact admin");
     }
 
     if (session.createdBy !== profileId) {
@@ -83,80 +76,12 @@ const markAttendance = async(request) => {
         subject: session.classSchedule.subject.name
     };
 };
-
-/**
- * Mark single attendance
- * Update one student's attendance status
- */
-const markSingleAttendance = async(request) => {
-    const validated = validate(markSingleAttendanceSchema, request);
-    const { attendanceId, status, notes, profileId } = validated;
-
-    // Get attendance with session info
-    const attendance = await prismaClient.attendance.findUnique({
-        where: { id: attendanceId },
-        include: {
-            attendanceSession: {
-                include: {
-                    classSchedule: {
-                        select: {
-                            class: { select: { name: true } },
-                            subject: { select: { name: true } }
-                        }
-                    }
-                }
-            },
-            student: {
-                select: { fullName: true, studentId: true }
-            }
-        }
-    });
-
-    if (!attendance) {
-        throw new ResponseError(404, "Attendance record not found");
-    }
-
-    // Validate ownership
-    if (attendance.attendanceSession.createdBy !== profileId) {
-        throw new ResponseError(403, "Unauthorized to modify this attendance");
-    }
-
-    // Validate session is modifiable
-    validateSessionActive(attendance.attendanceSession);
-
-    // Update attendance
-    const updated = await prismaClient.attendance.update({
-        where: { id: attendanceId },
-        data: {
-            status: status,
-            checkInTime: status !== 'absent' ? new Date() : null,
-            attendanceMethod: 'manual',
-            markedBy: profileId,
-            notes: notes || null,
-            updatedAt: new Date()
-        }
-    });
-
-    return {
-        message: "Attendance updated successfully",
-        attendance: {
-            id: updated.id,
-            studentName: attendance.student.fullName,
-            studentNumber: attendance.student.studentId,
-            status: updated.status,
-            checkInTime: updated.checkInTime,
-            notes: updated.notes,
-            className: attendance.attendanceSession.classSchedule.class.name,
-            subject: attendance.attendanceSession.classSchedule.subject.name
-        }
-    };
-};
-
-/**
- * Student self check-in
- * Student marks their own attendance (via face recognition or manual)
- */
+//Ini Belum bener, nanti ubah ke facedetection+geo map
 const studentCheckIn = async(request) => {
+    /**
+     * Student self check-in
+     * Student marks their own attendance (via face recognition or manual)
+     */
     const validated = validate(studentCheckInSchema, request);
     const { sessionId, studentId, method, faceConfidence } = validated;
 
@@ -238,11 +163,11 @@ const studentCheckIn = async(request) => {
     };
 };
 
-/**
- * Get attendance by session
- * Returns all attendance records for a specific session
- */
 const getAttendanceBySession = async(request) => {
+    /**
+     * Get attendance by session
+     * Returns all attendance records for a specific session
+     */
     const validated = validate(getAttendanceBySessionSchema, request);
     const { sessionId, profileId, role } = validated;
 
@@ -326,11 +251,11 @@ const getAttendanceBySession = async(request) => {
     };
 };
 
-/**
- * Get student attendance history
- * Returns attendance records for a specific student
- */
 const getStudentAttendanceHistory = async(request) => {
+    /**
+     * Get student attendance history
+     * Returns attendance records for a specific student
+     */
     const validated = validate(getStudentAttendanceHistorySchema, request);
     const { studentId, startDate, endDate, subjectId, status } = validated;
 
@@ -442,11 +367,11 @@ const getStudentAttendanceHistory = async(request) => {
     };
 };
 
-/**
- * Get attendance summary
- * Statistics and overview for a class, teacher, or student
- */
 const getAttendanceSummary = async(request) => {
+    /**
+     * Get attendance summary
+     * Statistics and overview for a class, teacher, or student
+     */
     const validated = validate(getAttendanceSummarySchema, request);
     const { type, id, startDate, endDate } = validated;
 
@@ -587,11 +512,11 @@ const getAttendanceSummary = async(request) => {
     };
 };
 
-/**
- * Export attendance report
- * Generate detailed attendance report for export
- */
 const exportAttendanceReport = async(request) => {
+    /**
+     * Export attendance report
+     * Generate detailed attendance report for export
+     */
     const validated = validate(exportAttendanceReportSchema, request);
     const { classId, startDate, endDate, format } = validated;
 
@@ -697,11 +622,11 @@ const exportAttendanceReport = async(request) => {
     return reportData;
 };
 
-/**
- * Get attendance analytics
- * Detailed analytics and trends
- */
 const getAttendanceAnalytics = async(filters) => {
+    /**
+     * Get attendance analytics
+     * Detailed analytics and trends
+     */
     const { classId, startDate, endDate, groupBy } = filters;
 
     const dateFilter = {
@@ -788,7 +713,6 @@ const getAttendanceAnalytics = async(filters) => {
 
 export default {
     markAttendance,
-    markSingleAttendance,
     studentCheckIn,
     getAttendanceBySession,
     getStudentAttendanceHistory,

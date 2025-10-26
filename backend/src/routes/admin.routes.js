@@ -12,17 +12,17 @@ adminRouter.get('/admin/sessions/statistics',
     sessionController.getSessionStatisticsController);
 
 //schedule (4)
-adminRouter.post('/api/admin/schedules',
+adminRouter.post('/admin/schedules',
     scheduleController.createScheduleController);
-adminRouter.patch('/api/admin/schedules/:id',
+adminRouter.patch('/admin/schedules/:id',
     scheduleController.updateScheduleController);
-adminRouter.delete('/api/admin/schedules/:id',
+adminRouter.delete('/admin/schedules/:id',
     scheduleController.deleteScheduleController);
-adminRouter.post('/api/admin/schedules/bulk',
+adminRouter.post('/admin/schedules/bulk',
     scheduleController.bulkCreateSchedulesController);
 
 //attendance (1)
-adminRouter.get('/api/admin/attendance/analytics',
+adminRouter.get('/admin/attendance/analytics',
     attendanceController.getAttendanceAnalyticsController);
 
 

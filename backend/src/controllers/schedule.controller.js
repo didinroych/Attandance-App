@@ -1,17 +1,7 @@
 import { ResponseError } from "../error/response-error.js";
 import scheduleService from "../services/schedule.service.js";
 
-/**
- * ============================================
- * SCHEDULE CONTROLLER
- * Handles HTTP requests for schedule endpoints
- * ============================================
- */
-
-/**
- * Get schedule by date
- * GET /api/users/schedule/date?date=YYYY-MM-DD
- */
+// GET /api/users/schedule/date?date=YYYY-MM-DD
 const getScheduleByDateController = async(req, res, next) => {
     try {
         const { date } = req.query;
@@ -36,10 +26,7 @@ const getScheduleByDateController = async(req, res, next) => {
     }
 };
 
-/**
- * Get weekly schedule
- * GET /api/users/schedule/weekly?startDate=YYYY-MM-DD
- */
+// GET /api/users/schedule/weekly?startDate=YYYY-MM-DD
 const getWeeklyScheduleController = async(req, res, next) => {
     try {
         const { startDate } = req.query;
@@ -60,10 +47,7 @@ const getWeeklyScheduleController = async(req, res, next) => {
     }
 };
 
-/**
- * Get schedule by academic period
- * GET /api/users/schedule/academic-period/:academicPeriodId
- */
+// GET /api/users/schedule/academic-period/:academicPeriodId
 const getScheduleByAcademicPeriodController = async(req, res, next) => {
     try {
         const academicPeriodId = parseInt(req.params.academicPeriodId);
@@ -89,10 +73,7 @@ const getScheduleByAcademicPeriodController = async(req, res, next) => {
     }
 };
 
-/**
- * Get teacher schedules (classes they teach)
- * GET /api/teacher/schedules
- */
+// GET /api/teacher/schedules
 const getTeacherSchedulesController = async(req, res, next) => {
     try {
         if (req.user.role !== "teacher" && req.user.role !== "admin") {
@@ -127,10 +108,7 @@ const getTeacherSchedulesController = async(req, res, next) => {
     }
 };
 
-/**
- * Create schedule (Admin only)
- * POST /api/admin/schedules
- */
+// POST /api/admin/schedules (Single)
 const createScheduleController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {
@@ -147,10 +125,7 @@ const createScheduleController = async(req, res, next) => {
     }
 };
 
-/**
- * Update schedule (Admin only)
- * PATCH /api/admin/schedules/:id
- */
+// PATCH /api/admin/schedules/:id
 const updateScheduleController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {
@@ -178,10 +153,7 @@ const updateScheduleController = async(req, res, next) => {
     }
 };
 
-/**
- * Delete schedule (Admin only)
- * DELETE /api/admin/schedules/:id?softDelete=true
- */
+// DELETE /api/admin/schedules/:id?softDelete=true
 const deleteScheduleController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {
@@ -211,10 +183,7 @@ const deleteScheduleController = async(req, res, next) => {
     }
 };
 
-/**
- * Bulk create schedules (Admin only)
- * POST /api/admin/schedules/bulk
- */
+// POST /api/admin/schedules/bulk
 const bulkCreateSchedulesController = async(req, res, next) => {
     try {
         if (req.user.role !== "admin") {

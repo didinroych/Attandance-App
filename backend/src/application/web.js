@@ -1,5 +1,5 @@
 import express from "express";
-import { publicRouter } from "../route/auth-api.js";
+import { publicRouter } from "../routes/auth.routes.js";
 import { errorMiddleware } from "../middleware/error-middleware.js";
 import { userRouter } from "../route/api.js";
 import cors from "cors";
@@ -19,6 +19,6 @@ web.use(userRouter);
 web.use(teacherRouter);
 web.use(adminRouter);
 web.use(studentRouter);
-web.use(usersRouter)
+web.use(usersRouter);
 
 web.use(errorMiddleware);

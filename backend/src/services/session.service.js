@@ -1,21 +1,20 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     createSessionSchema,
     getSessionSchema,
-    getSessionsListSchema,
-    updateSessionStatusSchema,
-    endSessionSchema
+    getSessionsListSchema
 } from "../validations/session.validation.js";
 import { calculateSessionSummary, validateSessionOwnership } from "../helpers/session.helper.js";
 
-/**
- * Create a new attendance session
- * Teacher creates a session for a specific class schedule on a specific date
- * Automatically creates attendance records for all students (default: absent)
- */
+
 const createSession = async(request) => {
+    /**
+     * Create a new attendance session
+     * Teacher creates a session for a specific class schedule on a specific date
+     * Automatically creates attendance records for all students (default: absent)
+     */
     const validated = validate(createSessionSchema, request);
     const { classScheduleId, date, notes, profileId } = validated;
 
@@ -124,11 +123,11 @@ const createSession = async(request) => {
     };
 };
 
-/**
- * Get detailed session information
- * Returns session details with all attendances
- */
 const getSession = async(request) => {
+    /**
+     * Get detailed session information
+     * Returns session details with all attendances
+     */
     const validated = validate(getSessionSchema, request);
     const { sessionId, profileId } = validated;
 
@@ -200,11 +199,11 @@ const getSession = async(request) => {
     };
 };
 
-/**
- * Get list of sessions for a specific class schedule
- * Returns all sessions with attendance summaries
- */
 const getSessionsList = async(request) => {
+    /**
+     * Get list of sessions for a specific class schedule
+     * Returns all sessions with attendance summaries
+     */
     const validated = validate(getSessionsListSchema, request);
     const { classScheduleId, profileId } = validated;
 
@@ -269,83 +268,12 @@ const getSessionsList = async(request) => {
     });
 };
 
-/**
- * Update session status (ongoing -> completed/cancelled)
- */
-const updateSessionStatus = async(request) => {
-    const validated = validate(updateSessionStatusSchema, request);
-    const { sessionId, status, profileId } = validated;
-
-    // Fetch and validate session
-    const session = await prismaClient.attendanceSession.findUnique({
-        where: { id: sessionId }
-    });
-
-    if (!session) {
-        throw new ResponseError(404, "Session not found");
-    }
-
-    await validateSessionOwnership(session, profileId);
-
-    // Validate status transition
-    if (session.status === 'completed') {
-        throw new ResponseError(400, "Cannot modify completed session");
-    }
-
-    if (session.status === 'cancelled') {
-        throw new ResponseError(400, "Cannot modify cancelled session");
-    }
-
-    // Update session
-    const updated = await prismaClient.attendanceSession.update({
-        where: { id: sessionId },
-        data: {
-            status: status,
-            endedAt: status === 'completed' || status === 'cancelled' ? new Date() : null
-        }
-    });
-
-    return {
-        sessionId: updated.id,
-        status: updated.status,
-        endedAt: updated.endedAt,
-        message: `Session ${status} successfully`
-    };
-};
-
-/**
- * End/complete a session
- * Shortcut for updateSessionStatus with status='completed'
- */
-const endSession = async(request) => {
-    const validated = validate(endSessionSchema, request);
-
-    return await updateSessionStatus({
-        sessionId: validated.sessionId,
-        status: 'completed',
-        profileId: validated.profileId
-    });
-};
-
-/**
- * Cancel a session
- */
-const cancelSession = async(request) => {
-    const validated = validate(endSessionSchema, request);
-
-    return await updateSessionStatus({
-        sessionId: validated.sessionId,
-        status: 'cancelled',
-        profileId: validated.profileId
-    });
-};
-
-/**
- * Get active (ongoing) sessions
- * For students: sessions where they're marked absent and session is ongoing
- * For teachers: all ongoing sessions they created
- */
 const getActiveSessions = async(request) => {
+    /**
+     * Get active (ongoing) sessions
+     * For students: sessions where they're marked absent and session is ongoing
+     * For teachers: all ongoing sessions they created
+     */
     const { profileId, role } = request;
 
     if (role === 'student') {
@@ -451,11 +379,52 @@ const getActiveSessions = async(request) => {
     }
 };
 
-/**
- * Get session statistics (Admin only)
- * Returns aggregated data about sessions
- */
+const updateSessionStatus = async(request) => {
+    const validated = validate(updateSessionStatusSchema, request);
+    const { sessionId, status, profileId } = validated;
+
+    // Fetch and validate session
+    const session = await prismaClient.attendanceSession.findUnique({
+        where: { id: sessionId }
+    });
+
+    if (!session) {
+        throw new ResponseError(404, "Session not found");
+    }
+
+    await validateSessionOwnership(session, profileId);
+
+    // Validate status transition
+    if (session.status === 'finalized') {
+        throw new ResponseError(400, "Cannot modify finalized session");
+    }
+
+    if (session.status === 'cancelled') {
+        throw new ResponseError(400, "Cannot modify cancelled session");
+    }
+
+    // Update session
+    const updated = await prismaClient.attendanceSession.update({
+        where: { id: sessionId },
+        data: {
+            status: status,
+            endedAt: status === 'completed' || status === 'cancelled' ? new Date() : null
+        }
+    });
+
+    return {
+        sessionId: updated.id,
+        status: updated.status,
+        endedAt: updated.endedAt,
+        message: `Session ${status} successfully`
+    };
+};
+
 const getSessionStatistics = async(filters = {}) => {
+    /**
+     * Get session statistics (Admin only)
+     * Returns aggregated data about sessions
+     */
     const { startDate, endDate, classId, teacherId } = filters;
 
     const whereClause = {};
@@ -514,9 +483,7 @@ export default {
     createSession,
     getSession,
     getSessionsList,
-    updateSessionStatus,
-    endSession,
-    cancelSession,
     getActiveSessions,
+    updateSessionStatus,
     getSessionStatistics
 };

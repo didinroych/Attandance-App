@@ -1,7 +1,6 @@
-import { prismaClient } from "../application/database.js";
+import { prismaClient } from "../application/database.js"
 
 export const getAcademicPeriod = async() => {
-
     const academicPeriod = await prismaClient.academicPeriod.findMany({
         select: {
             id: true,
