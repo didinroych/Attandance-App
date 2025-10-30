@@ -1,12 +1,12 @@
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     requestResetPasswordValidation,
     verifyOTPValidation,
     resetPasswordValidation,
-} from "../validation/password-reset-validation.js";
-import emailService from "./email-service.js";
+} from "../validations/password-reset-validation.js";
+import emailService from "./email.service.js";
 import { generateOTP, getOTPExpiry, isOTPExpired } from "../utils/otp-generator.js";
 import bcrypt from "bcrypt";
 import { logger } from "../application/logging.js";

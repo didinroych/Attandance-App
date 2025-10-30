@@ -1,14 +1,12 @@
 import nodemailer from "nodemailer";
 import { logger } from "../application/logging.js";
 
-/**
- * Create SMTP transporter
- */
+
 const createTransporter = () => {
     return nodemailer.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_PORT === '465', // true for 465
+        secure: process.env.SMTP_PORT === '465',
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -16,12 +14,6 @@ const createTransporter = () => {
     });
 };
 
-/**
- * Generate OTP email HTML template
- * @param {string} otpCode - 6-digit OTP code
- * @param {number} expiryMinutes - Minutes until expiration
- * @returns {string} HTML email template
- */
 const getOTPEmailTemplate = (otpCode, expiryMinutes = 10) => {
     return `
 <!DOCTYPE html>
@@ -105,13 +97,6 @@ const getOTPEmailTemplate = (otpCode, expiryMinutes = 10) => {
     `.trim();
 };
 
-/**
- * Send OTP email
- * @param {string} email - Recipient email address
- * @param {string} otpCode - 6-digit OTP code
- * @param {number} expiryMinutes - Minutes until expiration
- * @returns {Promise<void>}
- */
 const sendOTPEmail = async(email, otpCode, expiryMinutes = 10) => {
     try {
         const transporter = createTransporter();
@@ -140,10 +125,6 @@ const sendOTPEmail = async(email, otpCode, expiryMinutes = 10) => {
     }
 };
 
-/**
- * Verify SMTP configuration
- * @returns {Promise<boolean>}
- */
 const verifyEmailConfig = async() => {
     try {
         const transporter = createTransporter();

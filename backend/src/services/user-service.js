@@ -1,4 +1,4 @@
-import { validate } from "../validation/validation.js";
+import { validate } from "../validations/validation.js";
 import {
     getUserValidation,
     updateRoleByAdmin,

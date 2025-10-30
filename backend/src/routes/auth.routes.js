@@ -1,7 +1,7 @@
 import express from "express";
-import healthController from "../controller/health-controller.js";
-import authContoller from "../controller/auth-contoller.js";
-import passwordResetController from "../controller/password-reset-controller.js";
+import healthController from "../controllers/health.controller.js";
+import authContoller from "../controllers/auth.controller.js";
+import passwordResetController from "../controllers/password.reset.controller.js";
 
 const publicRouter = new express.Router();
 
