@@ -44,36 +44,6 @@ const markAttendanceSchema = Joi.object({
         .required()
 });
 
-/**
- * Validation for marking single attendance
- */
-const markSingleAttendanceSchema = Joi.object({
-    attendanceId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'any.required': 'Attendance ID is required'
-        }),
-
-    status: Joi.string()
-        .valid('present', 'absent', 'late', 'excused')
-        .required()
-        .messages({
-            'any.only': 'Status must be: present, absent, late, or excused',
-            'any.required': 'Status is required'
-        }),
-
-    notes: Joi.string()
-        .max(255)
-        .optional()
-        .allow(null, ''),
-
-    profileId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-});
 
 /**
  * Validation for student check-in
@@ -111,99 +81,10 @@ const studentCheckInSchema = Joi.object({
         })
 });
 
-/**
- * Validation for getting attendance by session
- */
-const getAttendanceBySessionSchema = Joi.object({
-    sessionId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'any.required': 'Session ID is required'
-        }),
-
-    profileId: Joi.number()
-        .integer()
-        .positive()
-        .required(),
-
-    role: Joi.string()
-        .valid('teacher', 'student', 'admin')
-        .required()
-});
-
-/**
- * Validation for getting student attendance history
- */
-const getStudentAttendanceHistorySchema = Joi.object({
-    studentId: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'any.required': 'Student ID is required'
-        }),
-
-    startDate: Joi.string()
-        .pattern(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Start date must be in YYYY-MM-DD format'
-        }),
-
-    endDate: Joi.string()
-        .pattern(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .messages({
-            'string.pattern.base': 'End date must be in YYYY-MM-DD format'
-        }),
-
-    subjectId: Joi.number()
-        .integer()
-        .positive()
-        .optional(),
-
-    status: Joi.string()
-        .valid('present', 'absent', 'late', 'excused')
-        .optional()
-});
-
-/**
- * Validation for getting attendance summary
- */
 const getAttendanceSummarySchema = Joi.object({
-    type: Joi.string()
-        .valid('class', 'teacher', 'student')
-        .required()
-        .messages({
-            'any.only': 'Type must be: class, teacher, or student',
-            'any.required': 'Type is required'
-        }),
-
-    id: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .messages({
-            'any.required': 'ID is required'
-        }),
-
-    startDate: Joi.string()
-        .pattern(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Start date must be in YYYY-MM-DD format'
-        }),
-
-    endDate: Joi.string()
-        .pattern(/^\d{4}-\d{2}-\d{2}$/)
-        .optional()
-        .messages({
-            'string.pattern.base': 'End date must be in YYYY-MM-DD format'
-        })
+    profileId: Joi.number().positive().required(),
+    role: Joi.string().valid('student', 'teacher', 'admin', 'super_admin').required()
 });
-
 /**
  * Validation for exporting attendance report
  */
@@ -240,10 +121,7 @@ const exportAttendanceReportSchema = Joi.object({
 
 export {
     markAttendanceSchema,
-    markSingleAttendanceSchema,
     studentCheckInSchema,
-    getAttendanceBySessionSchema,
-    getStudentAttendanceHistorySchema,
     getAttendanceSummarySchema,
     exportAttendanceReportSchema
 };

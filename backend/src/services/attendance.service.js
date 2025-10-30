@@ -4,16 +4,15 @@ import { validate } from "../validations/validation.js";
 import {
     markAttendanceSchema,
     studentCheckInSchema,
-    getAttendanceBySessionSchema,
-    getStudentAttendanceHistorySchema,
-    getAttendanceSummarySchema,
-    exportAttendanceReportSchema
+    exportAttendanceReportSchema,
+    getAttendanceSummarySchema
 } from "../validations/attendance.validation.js";
 import {
     calculateAttendancePercentage,
     determineAttendanceStatus,
     validateSessionActive
 } from "../helpers/attendance.helper.js";
+import { getUserClassSessions } from "../validation/class-session-validation.js";
 
 const markAttendance = async(request) => {
     const validated = validate(markAttendanceSchema, request);
@@ -163,145 +162,79 @@ const studentCheckIn = async(request) => {
     };
 };
 
-const getAttendanceBySession = async(request) => {
-    /**
-     * Get attendance by session
-     * Returns all attendance records for a specific session
-     */
-    const validated = validate(getAttendanceBySessionSchema, request);
-    const { sessionId, profileId, role } = validated;
 
-    // Get session with all attendances
-    const session = await prismaClient.attendanceSession.findUnique({
-        where: { id: sessionId },
-        include: {
-            classSchedule: {
+
+const getAttendanceSummary = async(request) => {
+    const validated = validate(getAttendanceSummarySchema, request);
+    const { profileId, role } = validated;
+
+    if (role === 'student') {
+        return await getStudentSummary(profileId);
+    } else if (role === 'teacher') {
+        return await getTeacherSummary(profileId);
+    } else {
+        throw new ResponseError(403, "Role not supported");
+    }
+};
+
+// ✅ Student: group by classSchedule
+const getStudentSummary = async(userId) => {
+    const student = await prismaClient.student.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            fullName: true,
+            studentId: true,
+            class: {
                 select: {
-                    class: { select: { name: true } },
-                    subject: { select: { name: true } },
-                    teacher: { select: { fullName: true } }
-                }
-            },
-            attendances: {
-                include: {
-                    student: {
+                    id: true,
+                    name: true,
+                    gradeLevel: true,
+                    academicPeriod: {
                         select: {
-                            id: true,
-                            fullName: true,
-                            studentId: true
+                            name: true,
+                            startDate: true,
+                            endDate: true
                         }
-                    },
-                    markedByTeacher: {
-                        select: {
-                            fullName: true
-                        }
-                    }
-                },
-                orderBy: {
-                    student: {
-                        fullName: 'asc'
                     }
                 }
             }
         }
     });
 
-    if (!session) {
-        throw new ResponseError(404, "Session not found");
+    if (!student) {
+        throw new ResponseError(404, "Student not found");
     }
 
-    // Authorization check for teachers
-    if (role === 'teacher' && session.createdBy !== profileId) {
-        throw new ResponseError(403, "Unauthorized to view this session's attendance");
-    }
-
-    // Calculate summary
-    const summary = {
-        total: session.attendances.length,
-        present: session.attendances.filter(a => a.status === 'present').length,
-        absent: session.attendances.filter(a => a.status === 'absent').length,
-        late: session.attendances.filter(a => a.status === 'late').length,
-        excused: session.attendances.filter(a => a.status === 'excused').length
-    };
-
-    return {
-        session: {
-            id: session.id,
-            date: session.date,
-            status: session.status,
-            startedAt: session.startedAt,
-            endedAt: session.endedAt,
-            className: session.classSchedule.class.name,
-            subject: session.classSchedule.subject.name,
-            teacher: session.classSchedule.teacher.fullName
-        },
-        summary: summary,
-        attendances: session.attendances.map(a => ({
-            id: a.id,
-            studentId: a.student.id,
-            studentName: a.student.fullName,
-            studentNumber: a.student.studentId,
-            status: a.status,
-            checkInTime: a.checkInTime,
-            attendanceMethod: a.attendanceMethod,
-            faceConfidence: a.faceConfidence,
-            markedBy: a.markedByTeacher ? a.markedByTeacher.fullName : null,
-            notes: a.notes
-        }))
-    };
-};
-
-const getStudentAttendanceHistory = async(request) => {
-    /**
-     * Get student attendance history
-     * Returns attendance records for a specific student
-     */
-    const validated = validate(getStudentAttendanceHistorySchema, request);
-    const { studentId, startDate, endDate, subjectId, status } = validated;
-
-    // Build where clause
-    const whereClause = {
-        studentId: studentId
-    };
-
-    if (startDate || endDate) {
-        whereClause.attendanceSession = {
-            date: {}
-        };
-        if (startDate) {
-            whereClause.attendanceSession.date.gte = new Date(startDate);
-        }
-        if (endDate) {
-            whereClause.attendanceSession.date.lte = new Date(endDate);
-        }
-    }
-
-    if (subjectId) {
-        if (!whereClause.attendanceSession) {
-            whereClause.attendanceSession = {};
-        }
-        whereClause.attendanceSession.classSchedule = {
-            subjectId: subjectId
-        };
-    }
-
-    if (status) {
-        whereClause.status = status;
-    }
-
-    // Get attendance records
+    // Ambil semua attendance dengan detail classSchedule
     const attendances = await prismaClient.attendance.findMany({
-        where: whereClause,
+        where: {
+            studentId: student.id
+        },
         include: {
             attendanceSession: {
                 select: {
+                    id: true,
                     date: true,
-                    status: true,
                     classSchedule: {
                         select: {
-                            subject: { select: { name: true, code: true } },
-                            teacher: { select: { fullName: true } },
-                            class: { select: { name: true } }
+                            id: true,
+                            subject: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    code: true
+                                }
+                            },
+                            teacher: {
+                                select: {
+                                    fullName: true
+                                }
+                            },
+                            dayOfWeek: true,
+                            startTime: true,
+                            endTime: true,
+                            room: true
                         }
                     }
                 }
@@ -314,21 +247,7 @@ const getStudentAttendanceHistory = async(request) => {
         }
     });
 
-    // Get student info
-    const student = await prismaClient.student.findUnique({
-        where: { id: studentId },
-        select: {
-            fullName: true,
-            studentId: true,
-            class: { select: { name: true } }
-        }
-    });
-
-    if (!student) {
-        throw new ResponseError(404, "Student not found");
-    }
-
-    // Calculate summary
+    // Summary keseluruhan
     const summary = {
         total: attendances.length,
         present: attendances.filter(a => a.status === 'present').length,
@@ -337,178 +256,217 @@ const getStudentAttendanceHistory = async(request) => {
         excused: attendances.filter(a => a.status === 'excused').length,
         attendanceRate: calculateAttendancePercentage(attendances)
     };
+
+    // ✅ Group by classSchedule
+    const bySchedule = {};
+    attendances.forEach(att => {
+        const schedule = att.attendanceSession.classSchedule;
+        const scheduleKey = `schedule_${schedule.id}`;
+
+        if (!bySchedule[scheduleKey]) {
+            bySchedule[scheduleKey] = {
+                scheduleId: schedule.id,
+                subject: {
+                    id: schedule.subject.id,
+                    name: schedule.subject.name,
+                    code: schedule.subject.code
+                },
+                teacher: schedule.teacher.fullName,
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                room: schedule.room,
+                attendance: {
+                    present: 0,
+                    absent: 0,
+                    late: 0,
+                    excused: 0,
+                    total: 0
+                },
+                sessions: []
+            };
+        }
+
+        bySchedule[scheduleKey].attendance[att.status]++;
+        bySchedule[scheduleKey].attendance.total++;
+
+        // Add session detail
+        bySchedule[scheduleKey].sessions.push({
+            date: att.attendanceSession.date,
+            status: att.status,
+            checkInTime: att.checkInTime
+        });
+    });
+
+    // Convert to array dan calculate attendance rate per schedule
+    const scheduleArray = Object.values(bySchedule).map(schedule => ({
+        ...schedule,
+        attendance: {
+            ...schedule.attendance,
+            attendanceRate: calculateAttendancePercentage(
+                schedule.sessions.map(s => ({ status: s.status }))
+            )
+        },
+        sessions: schedule.sessions.sort((a, b) => b.date - a.date) // newest first
+    }));
 
     return {
         student: {
-            id: studentId,
             name: student.fullName,
             studentNumber: student.studentId,
-            className: student.class.name
+            class: student.class.name,
+            gradeLevel: student.class.gradeLevel
         },
-        filters: {
-            startDate: startDate || null,
-            endDate: endDate || null,
-            subjectId: subjectId || null,
-            status: status || null
-        },
-        summary: summary,
-        attendances: attendances.map(a => ({
-            id: a.id,
-            date: a.attendanceSession.date,
-            status: a.status,
-            checkInTime: a.checkInTime,
-            subject: a.attendanceSession.classSchedule.subject.name,
-            subjectCode: a.attendanceSession.classSchedule.subject.code,
-            teacher: a.attendanceSession.classSchedule.teacher.fullName,
-            className: a.attendanceSession.classSchedule.class.name,
-            sessionStatus: a.attendanceSession.status,
-            notes: a.notes
-        }))
+        academicPeriod: student.class.academicPeriod,
+        summary,
+        bySchedule: scheduleArray
     };
 };
 
-const getAttendanceSummary = async(request) => {
-    /**
-     * Get attendance summary
-     * Statistics and overview for a class, teacher, or student
-     */
-    const validated = validate(getAttendanceSummarySchema, request);
-    const { type, id, startDate, endDate } = validated;
-
-    const dateFilter = {};
-    if (startDate || endDate) {
-        dateFilter.date = {};
-        if (startDate) dateFilter.date.gte = new Date(startDate);
-        if (endDate) dateFilter.date.lte = new Date(endDate);
-    }
-
-    let whereClause = {};
-    let groupInfo = {};
-
-    if (type === 'class') {
-        // Summary for entire class
-        const classData = await prismaClient.class.findUnique({
-            where: { id: id },
-            select: { name: true, gradeLevel: true }
-        });
-
-        if (!classData) {
-            throw new ResponseError(404, "Class not found");
-        }
-
-        whereClause = {
-            attendanceSession: {
-                classSchedule: {
-                    classId: id
-                },
-                ...dateFilter
-            }
-        };
-
-        groupInfo = {
-            type: 'class',
-            name: classData.name,
-            gradeLevel: classData.gradeLevel
-        };
-
-    } else if (type === 'teacher') {
-        // Summary for teacher's sessions
-        const teacher = await prismaClient.teacher.findUnique({
-            where: { id: id },
-            select: { fullName: true }
-        });
-
-        if (!teacher) {
-            throw new ResponseError(404, "Teacher not found");
-        }
-
-        whereClause = {
-            attendanceSession: {
-                createdBy: id,
-                ...dateFilter
-            }
-        };
-
-        groupInfo = {
-            type: 'teacher',
-            name: teacher.fullName
-        };
-
-    } else if (type === 'student') {
-        // Summary for specific student
-        const student = await prismaClient.student.findUnique({
-            where: { id: id },
-            select: {
-                fullName: true,
-                studentId: true,
-                class: { select: { name: true } }
-            }
-        });
-
-        if (!student) {
-            throw new ResponseError(404, "Student not found");
-        }
-
-        whereClause = {
-            studentId: id,
-            attendanceSession: dateFilter
-        };
-
-        groupInfo = {
-            type: 'student',
-            name: student.fullName,
-            studentNumber: student.studentId,
-            className: student.class.name
-        };
-    }
-
-    // Get attendance data
-    const attendances = await prismaClient.attendance.findMany({
-        where: whereClause,
+// ✅ Teacher: group by classSchedule
+const getTeacherSummary = async(userId) => {
+    const teacher = await prismaClient.teacher.findUnique({
+        where: { id: userId },
         select: {
-            status: true,
-            attendanceSession: {
-                select: {
-                    date: true,
-                    classSchedule: {
-                        select: {
-                            subject: { select: { name: true } }
-                        }
-                    }
-                }
-            }
+            id: true,
+            fullName: true,
+            teacherId: true
         }
     });
 
-    // Calculate summary
+    if (!teacher) {
+        throw new ResponseError(404, "Teacher not found");
+    }
+
+    // Ambil semua sessions dengan detail classSchedule
+    const sessions = await prismaClient.attendanceSession.findMany({
+        where: {
+            createdBy: teacher.id
+        },
+        include: {
+            classSchedule: {
+                select: {
+                    id: true,
+                    class: {
+                        select: {
+                            id: true,
+                            name: true,
+                            gradeLevel: true
+                        }
+                    },
+                    subject: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true
+                        }
+                    },
+                    dayOfWeek: true,
+                    startTime: true,
+                    endTime: true,
+                    room: true
+                }
+            },
+            attendances: {
+                select: {
+                    status: true,
+                    studentId: true
+                }
+            }
+        },
+        orderBy: {
+            date: 'desc'
+        }
+    });
+
+    // Summary keseluruhan
+    const allAttendances = sessions.flatMap(s => s.attendances);
     const summary = {
-        total: attendances.length,
-        present: attendances.filter(a => a.status === 'present').length,
-        absent: attendances.filter(a => a.status === 'absent').length,
-        late: attendances.filter(a => a.status === 'late').length,
-        excused: attendances.filter(a => a.status === 'excused').length,
-        attendanceRate: calculateAttendancePercentage(attendances)
+        totalSessions: sessions.length,
+        totalAttendances: allAttendances.length,
+        present: allAttendances.filter(a => a.status === 'present').length,
+        absent: allAttendances.filter(a => a.status === 'absent').length,
+        late: allAttendances.filter(a => a.status === 'late').length,
+        excused: allAttendances.filter(a => a.status === 'excused').length,
+        attendanceRate: calculateAttendancePercentage(allAttendances)
     };
 
-    // Group by subject
-    const bySubject = attendances.reduce((acc, att) => {
-        const subject = att.attendanceSession.classSchedule.subject.name;
-        if (!acc[subject]) {
-            acc[subject] = { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
+    // ✅ Group by classSchedule
+    const bySchedule = {};
+    sessions.forEach(session => {
+        const schedule = session.classSchedule;
+        const scheduleKey = `schedule_${schedule.id}`;
+
+        if (!bySchedule[scheduleKey]) {
+            bySchedule[scheduleKey] = {
+                scheduleId: schedule.id,
+                class: {
+                    id: schedule.class.id,
+                        name: schedule.class.name,
+                        gradeLevel: schedule.class.gradeLevel
+                },
+                subject: {
+                    id: schedule.subject.id,
+                    name: schedule.subject.name,
+                    code: schedule.subject.code
+                },
+                dayOfWeek: schedule.dayOfWeek,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime,
+                room: schedule.room,
+                attendance: {
+                    present: 0,
+                    absent: 0,
+                    late: 0,
+                    excused: 0,
+                    total: 0
+                },
+                totalSessions: 0,
+                sessionDates: []
+            };
         }
-        acc[subject][att.status]++;
-        acc[subject].total++;
-        return acc;
-    }, {});
+
+        bySchedule[scheduleKey].totalSessions++;
+        bySchedule[scheduleKey].sessionDates.push(session.date);
+
+        session.attendances.forEach(att => {
+            bySchedule[scheduleKey].attendance[att.status]++;
+            bySchedule[scheduleKey].attendance.total++;
+        });
+    });
+
+    // Convert to array dan calculate attendance rate per schedule
+    const scheduleArray = Object.values(bySchedule).map(schedule => ({
+        ...schedule,
+        attendance: {
+            ...schedule.attendance,
+            attendanceRate: calculateAttendancePercentage(
+                Array(schedule.attendance.total).fill(null).map((_, i) => {
+                    if (i < schedule.attendance.present) return { status: 'present' };
+                    if (i < schedule.attendance.present + schedule.attendance.late) return { status: 'late' };
+                    if (i < schedule.attendance.present + schedule.attendance.late + schedule.attendance.excused) return { status: 'excused' };
+                    return { status: 'absent' };
+                })
+            )
+        },
+        sessionDates: schedule.sessionDates.sort((a, b) => b - a) // newest first
+    }));
+
+    // Get date range
+    const allDates = sessions.map(s => s.date).filter(d => d);
+    const dateRange = allDates.length > 0 ? {
+        earliest: new Date(Math.min(...allDates.map(d => d.getTime()))),
+        latest: new Date(Math.max(...allDates.map(d => d.getTime())))
+    } : null;
 
     return {
-        info: groupInfo,
-        filters: {
-            startDate: startDate || null,
-            endDate: endDate || null
+        teacher: {
+            name: teacher.fullName,
+            teacherId: teacher.teacherId
         },
-        summary: summary,
-        bySubject: bySubject
+        period: dateRange,
+        summary,
+        bySchedule: scheduleArray
     };
 };
 
@@ -714,8 +672,6 @@ const getAttendanceAnalytics = async(filters) => {
 export default {
     markAttendance,
     studentCheckIn,
-    getAttendanceBySession,
-    getStudentAttendanceHistory,
     getAttendanceSummary,
     exportAttendanceReport,
     getAttendanceAnalytics

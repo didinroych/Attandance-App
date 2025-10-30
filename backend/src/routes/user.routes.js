@@ -10,37 +10,29 @@ const usersRouter = new express.Router();
 usersRouter.use(authMiddleware);
 
 //profile
-usersRouter.get('/api/users/profile', userController.getUserProfile);
-usersRouter.put('/api/users/update', userController.updatedUser);
+usersRouter.get('/api/users/profile', userController.getUserProfile); //done
+usersRouter.put('/api/users/update', userController.updatedUser); //User ga bisa edit - so hapus saja
 
 //schedule (3)
-usersRouter.get('/users/schedule/date',
-    scheduleController.getScheduleByDateController);
-usersRouter.get('/users/schedule/weekly',
-    scheduleController.getWeeklyScheduleController);
-usersRouter.get('/users/schedule/academic-period/:academicPeriodId',
-    scheduleController.getScheduleByAcademicPeriodController);
+usersRouter.get('/api/users/schedule/date',
+    scheduleController.getScheduleByDateController); //done
+usersRouter.get('/api/users/schedule/weekly',
+    scheduleController.getWeeklyScheduleController); //done
+usersRouter.get('/api/users/schedule/academic-period/:academicPeriodId',
+    scheduleController.getScheduleByAcademicPeriodController); //done
 
-//attendance (2)
-usersRouter.get('/users/attendance/session/:sessionId',
-    attendanceController.getAttendanceBySessionController);
-usersRouter.get('/users/attendance/summary/:type/:id',
-    attendanceController.getAttendanceSummaryController);
-usersRouter.get('/users/attendance/student/:studentId/history',
-    attendanceController.getStudentAttendanceHistoryController);
+//attendance (1)
+usersRouter.get('/api/users/attendance/summary/',
+    attendanceController.getAttendanceSummaryController); //done
 
 //sessions (1)
-usersRouter.get('/users/sessions/active',
-    sessionController.getActiveSessionsController);
+usersRouter.get('/api/users/sessions/active',
+    sessionController.getActiveSessionsController); //done
 
 //academic-periode 
-usersRouter.get('/users/academic-periode',
-    academicController.getAcademicPeriodCon);
+usersRouter.get('/api/users/academic-periode',
+    academicController.getAcademicPeriodCon); //done
 
-
-//Total ada 6 endpoint
-
-//Total endpoint re-factor (session, attendance, schedule) = 9 (teacher) + 2 (student) + 6 (admin) + 6 (users) = 23 endpoint
 export {
     usersRouter
 }

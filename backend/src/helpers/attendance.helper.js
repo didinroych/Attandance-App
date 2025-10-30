@@ -66,9 +66,8 @@ const validateSessionActive = (session) => {
     return true;
 };
 
-
 export {
     calculateAttendancePercentage,
     determineAttendanceStatus,
-    validateSessionActive,
+    validateSessionActive
 };

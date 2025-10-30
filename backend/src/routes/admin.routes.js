@@ -25,8 +25,11 @@ adminRouter.post('/admin/schedules/bulk',
 adminRouter.get('/admin/attendance/analytics',
     attendanceController.getAttendanceAnalyticsController);
 
-
-//Total ada 6 endpoint
+/* Next, buat endpoint admin, untuk bulk registration user via csv
+ - Harus megisi data table
+ 1. User
+ 2. Teacher/Student (Sesuai Role)
+ */
 
 export {
     adminRouter

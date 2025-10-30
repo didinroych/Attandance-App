@@ -54,103 +54,15 @@ const studentCheckInController = async(req, res, next) => {
     }
 };
 
-// GET /api/users/attendance/session/:sessionId
-const getAttendanceBySessionController = async(req, res, next) => {
+const getAttendanceSummaryController = async(req, res, next) => {
     try {
-        const sessionId = parseInt(req.params.sessionId);
-
-        if (isNaN(sessionId)) {
-            throw new ResponseError(400, "Invalid session ID");
-        }
-
         const request = {
-            sessionId,
             profileId: req.user.profileId,
             role: req.user.role
         };
 
-        const result = await attendanceService.getAttendanceBySession(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
-// GET /api/users/attendance/student/:studentId/history
-const getStudentAttendanceHistoryController = async(req, res, next) => {
-    try {
-        const studentId = parseInt(req.params.studentId);
-
-        if (isNaN(studentId)) {
-            throw new ResponseError(400, "Invalid student ID");
-        }
-
-        // Authorization: students can only view their own, teachers/admins can view any
-        if (req.user.role === 'student' && req.user.profileId !== studentId) {
-            throw new ResponseError(403, "You can only view your own attendance history");
-        }
-
-        const request = {
-            studentId,
-            startDate: req.query.startDate,
-            endDate: req.query.endDate,
-            subjectId: req.query.subjectId ? parseInt(req.query.subjectId) : undefined,
-            status: req.query.status
-        };
-
-        const result = await attendanceService.getStudentAttendanceHistory(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
-// GET /api/users/attendance/summary/:type/:id
-const getAttendanceSummaryController = async(req, res, next) => {
-    try {
-        const { type, id } = req.params;
-
-        const validTypes = ['class', 'teacher', 'student'];
-        if (!validTypes.includes(type)) {
-            throw new ResponseError(400, "Invalid summary type. Use: class, teacher, or student");
-        }
-
-        const parsedId = parseInt(id);
-        if (isNaN(parsedId)) {
-            throw new ResponseError(400, "Invalid ID");
-        }
-
-        // Authorization checks
-        if (req.user.role === 'student') {
-            if (type !== 'student' || parsedId !== req.user.profileId) {
-                throw new ResponseError(403, "Students can only view their own summary");
-            }
-        }
-
-        if (req.user.role === 'teacher') {
-            if (type === 'teacher' && parsedId !== req.user.profileId) {
-                throw new ResponseError(403, "Teachers can only view their own summary");
-            }
-        }
-
-        const request = {
-            type,
-            id: parsedId,
-            startDate: req.query.startDate,
-            endDate: req.query.endDate
-        };
-
         const result = await attendanceService.getAttendanceSummary(request);
-
-        res.status(200).json({
-            data: result
-        });
+        res.status(200).json({ data: result });
     } catch (e) {
         next(e);
     }
@@ -224,11 +136,11 @@ const getAttendanceAnalyticsController = async(req, res, next) => {
     }
 };
 
+
+
 export default {
     markAttendanceController,
     studentCheckInController,
-    getAttendanceBySessionController,
-    getStudentAttendanceHistoryController,
     getAttendanceSummaryController,
     exportAttendanceReportController,
     getAttendanceAnalyticsController
