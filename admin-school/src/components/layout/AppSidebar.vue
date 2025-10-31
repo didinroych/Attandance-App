@@ -206,7 +206,6 @@
           </div>
         </div>
       </nav>
-      <SidebarWidget v-if="isExpanded || isHovered || isMobileOpen" />
     </div>
   </aside>
 </template>
@@ -218,19 +217,15 @@ import { useRoute } from "vue-router";
 import {
   GridIcon,
   CalenderIcon,
-  UserCircleIcon,
-  ChatIcon,
-  MailIcon,
-  DocsIcon,
+  UserCircleIcon, 
   PieChartIcon,
   ChevronDownIcon,
   HorizontalDots,
   PageIcon,
   TableIcon,
-  ListIcon,
-  PlugInIcon,
-} from "../../icons";
-import SidebarWidget from "./SidebarWidget.vue";
+  ListIcon, 
+  SettingsIcon
+} from "../../icons"; 
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
 import { useSidebar } from "@/composables/useSidebar";
 
@@ -259,16 +254,23 @@ const menuGroups = [
         name: "Academic Management",
         icon: ListIcon,
         subItems: [
-          { name: "Academic Periode", path: "/academic-periode", pro: false },
-          { name: "Subject", path: "/subject", pro: false },
-          { name: "Class", path: "/class", pro: false },
+          { name: "Academic Periode", path: "/academic/academic-periode", pro: false },
+          { name: "Subject", path: "/academic/subject", pro: false },
+          { name: "Class", path: "/academic/class", pro: false },
         ],
       }, 
       {
         name: "Schedule Management",
         icon: CalenderIcon,
         subItems: [
-          { name: "Class Schedule", path: "/class-schedule", pro: false },
+          { name: "Class Schedule", path: "/schedule/class-schedule", pro: false },
+        ],
+      }, 
+      {
+        name: "Settings",
+        icon: SettingsIcon,
+        subItems: [
+          { name: "School Information", path: "/settings/school", pro: false },
         ],
       }, 
       {
