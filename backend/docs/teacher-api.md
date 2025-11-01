@@ -35,9 +35,9 @@ All endpoints require:
 **Example Request:**
 ```json
 {
-  "classScheduleId": 45,
-  "date": "2024-01-15",
-  "notes": "Chapter 5: Algebra fundamentals"
+    "classScheduleId": 65,
+    "date": "2025-10-28",
+    "notes": "Chapter 5: Algebra fundamentals"
 }
 ```
 
@@ -46,23 +46,32 @@ All endpoints require:
 - **Response Body:**
 ```json
 {
-  "data": {
-    "id": 234,
-    "classScheduleId": 45,
-    "teacherId": 8,
-    "date": "2024-01-15",
-    "status": "scheduled",
-    "notes": "Chapter 5: Algebra fundamentals",
-    "createdAt": "2024-01-15T07:30:00.000Z",
-    "schedule": {
-      "id": 45,
-      "className": "Class 10A",
-      "subjectName": "Mathematics",
-      "startTime": "08:00:00",
-      "endTime": "09:30:00",
-      "room": "Room 301"
+    "data": {
+        "sessionId": 2,
+        "className": "Class 10A",
+        "subjectName": "Kimia",
+        "date": "2025-10-28T00:00:00.000Z",
+        "status": "ongoing",
+        "startedAt": "2025-11-01T03:50:18.734Z",
+        "notes": "Chapter 5: Algebra fundamentals",
+        "totalStudents": 2,
+        "attendances": [
+            {
+                "attendanceId": 3,
+                "studentId": 1,
+                "studentName": "Ahmad Rizki Pratama",
+                "studentNumber": "STD2025001",
+                "status": "absent"
+            },
+            {
+                "attendanceId": 4,
+                "studentId": 2,
+                "studentName": "Doni Surahman",
+                "studentNumber": "STD2025002",
+                "status": "absent"
+            }
+        ]
     }
-  }
 }
 ```
 
@@ -70,25 +79,25 @@ All endpoints require:
 - **400 Bad Request:** Invalid input data
 ```json
 {
-  "errors": "Invalid session data"
+    "message": "Class schedule ID is required. Date is required"
 }
 ```
 - **403 Forbidden:** User is not a teacher
 ```json
 {
-  "errors": "Only teachers can create sessions"
+    "message": "Only teachers can create sessions"
 }
 ```
 - **404 Not Found:** Schedule not found
 ```json
 {
-  "errors": "Class schedule not found"
+    "message": "Schedule not found or unauthorized"
 }
 ```
 - **409 Conflict:** Session already exists for this date
 ```json
 {
-  "errors": "Session already exists for this schedule on this date"
+    "message": "Session already exists for this date"
 }
 ```
 
@@ -96,7 +105,7 @@ All endpoints require:
 
 ### 2. Get Session Details
 
-**Endpoint:** `GET /teacher/sessions/:id`
+**Endpoint:** `GET /teacher/sessions/:sessionId`
 
 **Description:** Get detailed information about a specific session including attendance data.
 
@@ -107,7 +116,7 @@ All endpoints require:
 
 **Example Request:**
 ```
-GET /teacher/sessions/234
+GET /teacher/sessions/2
 ```
 
 **Success Response:**
@@ -115,43 +124,39 @@ GET /teacher/sessions/234
 - **Response Body:**
 ```json
 {
-  "data": {
-    "id": 234,
-    "classScheduleId": 45,
-    "teacherId": 8,
-    "date": "2024-01-15",
-    "status": "completed",
-    "notes": "Chapter 5: Algebra fundamentals",
-    "createdAt": "2024-01-15T07:30:00.000Z",
-    "schedule": {
-      "id": 45,
-      "className": "Class 10A",
-      "subjectName": "Mathematics",
-      "startTime": "08:00:00",
-      "endTime": "09:30:00",
-      "room": "Room 301"
-    },
-    "attendance": {
-      "totalStudents": 40,
-      "present": 38,
-      "absent": 2,
-      "attendanceRate": 95,
-      "students": [
-        {
-          "studentId": 15,
-          "studentName": "John Doe",
-          "status": "present",
-          "checkInTime": "2024-01-15T08:05:00.000Z"
-        },
-        {
-          "studentId": 16,
-          "studentName": "Jane Smith",
-          "status": "absent",
-          "checkInTime": null
-        }
-      ]
+    "data": {
+        "sessionId": 2,
+        "className": "Class 10A",
+        "subjectName": "Kimia",
+        "date": "2025-10-28T00:00:00.000Z",
+        "status": "ongoing",
+        "startedAt": "2025-11-01T03:50:18.734Z",
+        "endedAt": null,
+        "notes": "Chapter 5: Algebra fundamentals",
+        "totalStudents": 2,
+        "attendances": [
+            {
+                "attendanceId": 3,
+                "studentId": 1,
+                "studentName": "Ahmad Rizki Pratama",
+                "studentNumber": "STD2025001",
+                "status": "absent",
+                "checkInTime": null,
+                "attendanceMethod": "face_recognition",
+                "notes": null
+            },
+            {
+                "attendanceId": 4,
+                "studentId": 2,
+                "studentName": "Doni Surahman",
+                "studentNumber": "STD2025002",
+                "status": "absent",
+                "checkInTime": null,
+                "attendanceMethod": "face_recognition",
+                "notes": null
+            }
+        ]
     }
-  }
 }
 ```
 
@@ -190,7 +195,7 @@ GET /teacher/sessions/234
 
 **Example Request:**
 ```
-GET /teacher/schedule/45/sessions
+GET /teacher/schedule/65/sessions
 ```
 
 **Success Response:**
@@ -198,41 +203,46 @@ GET /teacher/schedule/45/sessions
 - **Response Body:**
 ```json
 {
-  "data": {
-    "scheduleId": 45,
-    "className": "Class 10A",
-    "subjectName": "Mathematics",
-    "sessions": [
-      {
-        "id": 234,
-        "date": "2024-01-15",
-        "status": "completed",
-        "attendanceRate": 95,
-        "notes": "Chapter 5: Algebra fundamentals"
-      },
-      {
-        "id": 235,
-        "date": "2024-01-17",
-        "status": "ongoing",
-        "attendanceRate": 92.5,
-        "notes": "Chapter 5 continued"
-      },
-      {
-        "id": 236,
-        "date": "2024-01-22",
-        "status": "scheduled",
-        "attendanceRate": null,
-        "notes": null
-      }
-    ],
-    "statistics": {
-      "totalSessions": 3,
-      "completedSessions": 1,
-      "ongoingSessions": 1,
-      "scheduledSessions": 1,
-      "averageAttendanceRate": 93.75
-    }
-  }
+    "data": [
+        {
+            "session": {
+                "id": 3,
+                "date": "2025-11-07T00:00:00.000Z",
+                "status": "ongoing",
+                "startedAt": "2025-11-01T03:55:52.079Z",
+                "endedAt": null,
+                "notes": "Chapter 5: Algebra fundamentals",
+                "className": "Class 10A",
+                "subject": "Kimia"
+            },
+            "summary": {
+                "present": 0,
+                "absent": 2,
+                "late": 0,
+                "excused": 0,
+                "total": 2
+            }
+        },
+        {
+            "session": {
+                "id": 2,
+                "date": "2025-10-28T00:00:00.000Z",
+                "status": "ongoing",
+                "startedAt": "2025-11-01T03:50:18.734Z",
+                "endedAt": null,
+                "notes": "Chapter 5: Algebra fundamentals",
+                "className": "Class 10A",
+                "subject": "Kimia"
+            },
+            "summary": {
+                "present": 0,
+                "absent": 2,
+                "late": 0,
+                "excused": 0,
+                "total": 2
+            }
+        }
+    ]
 }
 ```
 
@@ -252,11 +262,12 @@ GET /teacher/schedule/45/sessions
 
 ---
 
-### 4. Update Session Status
+### 4. Update Session Status -- Masih error (tapi ini sama nantinya)
 
 **Endpoint:** `PATCH /teacher/sessions/:id/status`
 
 **Description:** Update the status of a session (scheduled, ongoing, completed, cancelled).
+You can completed after classend (Attandance still editebel), or session will be completed otomatic after 1 day
 
 **Authentication:** Required (Teacher only)
 
@@ -335,42 +346,37 @@ GET /api/teacher/schedules?academicPeriodId=2&isActive=true
 - **Response Body:**
 ```json
 {
-  "data": {
-    "teacherId": 8,
-    "teacherName": "John Smith",
-    "schedules": [
-      {
-        "id": 45,
-        "classId": 5,
-        "className": "Class 10A",
-        "subjectId": 12,
-        "subjectName": "Mathematics",
-        "academicPeriodId": 2,
-        "academicPeriod": "2024 Semester 1",
-        "dayOfWeek": 1,
-        "dayName": "Monday",
-        "startTime": "08:00:00",
-        "endTime": "09:30:00",
-        "room": "Room 301",
-        "isActive": true
-      },
-      {
-        "id": 46,
-        "classId": 6,
-        "className": "Class 10B",
-        "subjectId": 12,
-        "subjectName": "Mathematics",
-        "academicPeriodId": 2,
-        "academicPeriod": "2024 Semester 1",
-        "dayOfWeek": 1,
-        "dayName": "Monday",
-        "startTime": "09:45:00",
-        "endTime": "11:15:00",
-        "room": "Room 302",
-        "isActive": true
-      }
+    "data": [
+        {
+            "id": 64,
+            "className": "Class 10A",
+            "gradeLevel": 10,
+            "subject": "Fisika",
+            "subjectCode": "FIS",
+            "dayOfWeek": 1,
+            "startTime": "1970-01-01T12:30:00.000Z",
+            "endTime": "1970-01-01T14:00:00.000Z",
+            "room": "A101",
+            "academicPeriod": "Academic Year 2025/2026 - Semester 1",
+            "isActive": true,
+            "totalSessions": 0
+        }, 
+        ....
+        {
+            "id": 80,
+            "className": "Class 10A",
+            "gradeLevel": 10,
+            "subject": "Bimbingan Konseling",
+            "subjectCode": "BK",
+            "dayOfWeek": 5,
+            "startTime": "1970-01-01T12:30:00.000Z",
+            "endTime": "1970-01-01T13:15:00.000Z",
+            "room": "A101",
+            "academicPeriod": "Academic Year 2025/2026 - Semester 1",
+            "isActive": true,
+            "totalSessions": 0
+        }
     ]
-  }
 }
 ```
 
@@ -415,19 +421,15 @@ GET /api/teacher/schedules?academicPeriodId=2&isActive=true
 {
   "attendances": [
     {
-      "studentId": 15,
+      "attendanceId": 3,
       "status": "present",
       "notes": null
     },
+
     {
-      "studentId": 16,
-      "status": "absent",
-      "notes": "Sick leave"
-    },
-    {
-      "studentId": 17,
-      "status": "late",
-      "notes": "Arrived 15 minutes late"
+      "attendanceId": 4,
+      "status": "excused",
+      "notes": "LLL"
     }
   ]
 }
@@ -438,36 +440,13 @@ GET /api/teacher/schedules?academicPeriodId=2&isActive=true
 - **Response Body:**
 ```json
 {
-  "data": {
-    "sessionId": 234,
-    "marked": 3,
-    "summary": {
-      "present": 1,
-      "absent": 1,
-      "late": 1,
-      "excused": 0
-    },
-    "attendances": [
-      {
-        "id": 1001,
-        "studentId": 15,
-        "status": "present",
-        "markedAt": "2024-01-15T08:10:00.000Z"
-      },
-      {
-        "id": 1002,
-        "studentId": 16,
-        "status": "absent",
-        "markedAt": "2024-01-15T08:10:00.000Z"
-      },
-      {
-        "id": 1003,
-        "studentId": 17,
-        "status": "late",
-        "markedAt": "2024-01-15T08:10:00.000Z"
-      }
-    ]
-  }
+    "data": {
+        "message": "Attendance marked successfully",
+        "sessionId": 2,
+        "updated": 2,
+        "className": "Class 10A",
+        "subject": "Kimia"
+    }
 }
 ```
 
@@ -511,7 +490,7 @@ format: string (json | csv, default: json) - Export format
 
 **Example Request:**
 ```
-GET /api/teacher/attendance/report/export?classId=5&startDate=2024-01-01&endDate=2024-01-31&format=json
+GET /api/teacher/attendance/report/export?classId=2&startDate=2025-10-01&endDate=2025-10-30&format=json
 ```
 
 **Success Response:**
@@ -519,41 +498,75 @@ GET /api/teacher/attendance/report/export?classId=5&startDate=2024-01-01&endDate
 - **Response Body (JSON format):**
 ```json
 {
-  "data": {
-    "classId": 5,
-    "className": "Class 10A",
-    "period": {
-      "startDate": "2024-01-01",
-      "endDate": "2024-01-31"
-    },
-    "students": [
-      {
-        "studentId": 15,
-        "studentName": "John Doe",
-        "totalSessions": 45,
-        "present": 42,
-        "absent": 2,
-        "late": 1,
-        "excused": 0,
-        "attendanceRate": 93.3
-      },
-      {
-        "studentId": 16,
-        "studentName": "Jane Smith",
-        "totalSessions": 45,
-        "present": 40,
-        "absent": 4,
-        "late": 1,
-        "excused": 0,
-        "attendanceRate": 88.9
-      }
-    ],
-    "summary": {
-      "totalStudents": 40,
-      "totalSessions": 45,
-      "averageAttendanceRate": 87.5
+    "data": {
+        "class": {
+            "name": "Class 10A",
+            "gradeLevel": 10,
+            "schoolLevel": "SMP"
+        },
+        "period": {
+            "startDate": "2025-10-01",
+            "endDate": "2025-10-30"
+        },
+        "students": [
+            {
+                "id": 1,
+                "name": "Ahmad Rizki Pratama",
+                "studentNumber": "STD2025001",
+                "attendances": [
+                    {
+                        "date": "2025-10-28T00:00:00.000Z",
+                        "subject": "Biologi",
+                        "status": "absent",
+                        "checkInTime": null
+                    },
+                    {
+                        "date": "2025-10-28T00:00:00.000Z",
+                        "subject": "Kimia",
+                        "status": "present",
+                        "checkInTime": "2025-11-01T04:04:03.303Z"
+                    }
+                ],
+                "summary": {
+                    "total": 2,
+                    "present": 1,
+                    "absent": 1,
+                    "late": 0,
+                    "excused": 0,
+                    "attendanceRate": 50
+                }
+            },
+            {
+                "id": 2,
+                "name": "Doni Surahman",
+                "studentNumber": "STD2025002",
+                "attendances": [
+                    {
+                        "date": "2025-10-28T00:00:00.000Z",
+                        "subject": "Biologi",
+                        "status": "absent",
+                        "checkInTime": null
+                    },
+                    {
+                        "date": "2025-10-28T00:00:00.000Z",
+                        "subject": "Kimia",
+                        "status": "excused",
+                        "checkInTime": "2025-11-01T04:04:03.303Z"
+                    }
+                ],
+                "summary": {
+                    "total": 2,
+                    "present": 0,
+                    "absent": 1,
+                    "late": 0,
+                    "excused": 1,
+                    "attendanceRate": 0
+                }
+            }
+        ],
+        "totalSessions": 2,
+        "format": "json"
     }
-  }
 }
 ```
 

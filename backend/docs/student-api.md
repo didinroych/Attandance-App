@@ -15,7 +15,7 @@ All endpoints require:
 
 ## Endpoints
 
-### 1. Student Check-In
+### 1. Student Check-In -- Belum jadi
 
 **Endpoint:** `POST /api/student/attendance/check-in`
 

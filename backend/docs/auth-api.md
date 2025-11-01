@@ -32,11 +32,10 @@ All endpoints are prefixed with `/api/auth`
 **Example Request:**
 ```json
 {
-  "username": "johndoe123",
-  "fullName": "John Doe",
-  "email": "john@example.com",
+  "username": "inistudent6",
+  "email": "inistudent6@example.com",
   "password": "securepass123",
-  "role": "student"
+  "role": "student" --optional
 }
 ```
 
@@ -45,13 +44,10 @@ All endpoints are prefixed with `/api/auth`
 - **Response Body:**
 ```json
 {
-  "data": {
-    "id": 1,
-    "username": "johndoe123",
-    "email": "john@example.com",
-    "role": "student",
-    "createdAt": "2024-01-15T10:30:00.000Z"
-  }
+    "data": {
+        "username": "inistudent6",
+        "email": "inistudent6@email.com"
+    }
 }
 ```
 
@@ -62,10 +58,14 @@ All endpoints are prefixed with `/api/auth`
   "errors": "Validation error message"
 }
 ```
-- **409 Conflict:** Username or email already exists
+- **400 Bad Request** Username or email already exists
 ```json
 {
-  "errors": "Username already registered"
+    "message": "Validation failed",
+    "errors": {
+        "username": "Username already used",
+        "email": "Email already used"
+    }
 }
 ```
 
@@ -82,16 +82,16 @@ All endpoints are prefixed with `/api/auth`
 **Request Body:**
 ```json
 {
-  "username": "string (max 100 characters, required)",
-  "password": "string (max 100 characters, required)"
+  "username": "string (max 20 characters, required)",
+  "password": "string (max 20 characters, required)"
 }
 ```
 
 **Example Request:**
 ```json
 {
-  "username": "johndoe123",
-  "password": "securepass123"
+    "username": "initeacher",
+    "password": "password123"
 }
 ```
 
@@ -101,17 +101,14 @@ All endpoints are prefixed with `/api/auth`
 - **Response Body:**
 ```json
 {
-  "data": {
-    "user": {
-      "id": 1,
-      "username": "johndoe123",
-      "email": "john@example.com",
-      "role": "student",
-      "profileId": 5,
-      "classId": 10
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
+    "data": {
+        "user": {
+            "id": 3,
+            "username": "initeacher",
+            "role": "teacher"
+        },
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9......-XhRTc"
+    }
 }
 ```
 
@@ -119,15 +116,9 @@ All endpoints are prefixed with `/api/auth`
 - **400 Bad Request:** Invalid credentials
 ```json
 {
-  "errors": "Invalid username or password"
+    "message": "Username or Password Invalid"
 }
-```
-- **401 Unauthorized:** Account inactive
-```json
-{
-  "errors": "Account is not active"
-}
-```
+``` 
 
 ---
 
@@ -137,7 +128,7 @@ All endpoints are prefixed with `/api/auth`
 
 **Description:** Invalidate refresh token and clear authentication cookies.
 
-**Authentication:** Not required (uses refresh token from cookies)
+**Authentication:** Requires `refreshToken` cookie
 
 **Request Body:** None
 
@@ -146,9 +137,9 @@ All endpoints are prefixed with `/api/auth`
 - **Response Body:**
 ```json
 {
-  "data": {
-    "message": "Logout Successfull2"
-  }
+    "data": {
+        "message": "Logout Successfull2"
+    }
 }
 ```
 
@@ -156,7 +147,7 @@ All endpoints are prefixed with `/api/auth`
 - **401 Unauthorized:** Invalid or missing refresh token
 ```json
 {
-  "errors": "Refresh token not found"
+    "message": "Invalid or already revoked refresh token"
 }
 ```
 
@@ -177,16 +168,16 @@ All endpoints are prefixed with `/api/auth`
 - **Response Body:**
 ```json
 {
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": 1,
-      "username": "johndoe123",
-      "email": "john@example.com",
-      "role": "student",
-      "profileId": 5
+    "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..... ",
+        "user": {
+            "id": 5,
+            "username": "inistudent2",
+            "role": "student",
+            "profileId": 2,
+            "classId": 2
+        }
     }
-  }
 }
 ```
 
@@ -194,7 +185,7 @@ All endpoints are prefixed with `/api/auth`
 - **401 Unauthorized:** Refresh token not found or invalid
 ```json
 {
-  "errors": "Refresh token not found"
+    "message": "Invalid or expired refresh token"
 }
 ```
 
@@ -302,17 +293,19 @@ All endpoints are prefixed with `/api/auth`
 
 **Request Body:**
 ```json
-{
-  "resetToken": "string (required)",
+{ 
+  "email": "string (required)",
+  "otp": "string (6 digits, required)",
   "newPassword": "string (min 6, max 20 characters, required)"
-}
+} 
 ```
 
 **Example Request:**
 ```json
-{
-  "resetToken": "temporary_reset_token_here",
-  "newPassword": "newSecurePass123"
+{ 
+  "email": "didincrypto@gmail.com",
+  "otp": "816386",
+  "newPassword": "newSecurePassword123"
 }
 ```
 
@@ -352,7 +345,7 @@ All endpoints are prefixed with `/api/auth`
 
 ## Notes
 
-1. **Refresh Token Storage:** Refresh tokens are stored in httpOnly cookies for security
+1. **Refresh Token Storage:** Refresh tokens are stored in httpOnly cookies for security `Cookie: refreshToken= <refresh_token>`
 2. **Access Token Usage:** Include access token in `Authorization` header for protected endpoints: `Authorization: Bearer <access_token>`
 3. **Token Expiry:** Access tokens typically expire after 15 minutes, refresh tokens after 7 days
 4. **OTP Expiry:** OTP codes expire after 10 minutes
