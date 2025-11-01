@@ -11,10 +11,12 @@
 </template>
 
 <script>
-import AdminLayout from '../components/layout/AdminLayout.vue' 
+import AdminLayout from '../components/layout/AdminLayout.vue'
+import SchoolMetrics from '@/components/school/SchoolMetrics.vue'; 
 export default {
   components: {
     AdminLayout, 
+    SchoolMetrics
   },
   name: 'Ecommerce',
 }
