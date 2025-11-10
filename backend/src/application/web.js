@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 
 import { publicRouter } from "../routes/auth.routes.js";
 import { errorMiddleware } from "../middleware/error-middleware.js";
-// import { userRouter } from "../route/api.js";
 import { teacherRouter } from "../routes/teacher.routes.js";
 import { adminRouter } from "../routes/admin.routes.js";
 import { studentRouter } from "../routes/student.routes.js";
@@ -20,7 +19,6 @@ web.use(cors({
 }));
 
 web.use(publicRouter);
-// web.use(userRouter);
 web.use(teacherRouter);
 web.use(adminRouter);
 web.use(studentRouter);

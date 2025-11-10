@@ -199,37 +199,6 @@ const bulkCreateSchedulesController = async(req, res, next) => {
         next(e);
     }
 };
-
-// GET /api/users/schedule/subject/:subjectId?academicPeriodId=123
-const getScheduleBySubjectController = async(req, res, next) => {
-    try {
-        const subjectId = parseInt(req.params.subjectId);
-
-        if (isNaN(subjectId)) {
-            throw new ResponseError(400, "Invalid subject ID");
-        }
-
-        const academicPeriodId = req.query.academicPeriodId ?
-            parseInt(req.query.academicPeriodId) :
-            undefined;
-
-        const request = {
-            subjectId,
-            academicPeriodId,
-            profileId: req.user.profileId,
-            role: req.user.role
-        };
-
-        const result = await scheduleService.getScheduleBySubject(request);
-
-        res.status(200).json({
-            data: result
-        });
-    } catch (e) {
-        next(e);
-    }
-};
-
 export default {
     getScheduleByDateController,
     getWeeklyScheduleController,
@@ -239,5 +208,4 @@ export default {
     updateScheduleController,
     deleteScheduleController,
     bulkCreateSchedulesController,
-    getScheduleBySubjectController
 };

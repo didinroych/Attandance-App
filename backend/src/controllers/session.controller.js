@@ -108,11 +108,11 @@ const updateSessionStatusController = async(req, res, next) => {
     }
 };
 
-// GET /api/users/sessions/active
-const getActiveSessionsController = async(req, res, next) => {
+// GET /api/users/sessions/last
+const getLastSessionsController = async(req, res, next) => {
     try {
         if (req.user.role !== "student" && req.user.role !== "teacher") {
-            throw new ResponseError(403, "Only students and teachers can view active sessions");
+            throw new ResponseError(403, "Only students and teachers can view last sessions");
         }
 
         const request = {
@@ -120,7 +120,7 @@ const getActiveSessionsController = async(req, res, next) => {
             role: req.user.role
         };
 
-        const result = await sessionService.getActiveSessions(request);
+        const result = await sessionService.getLastSessions(request);
 
         res.status(200).json({
             data: result
@@ -159,6 +159,6 @@ export default {
     getSessionController,
     getSessionsListController,
     updateSessionStatusController,
-    getActiveSessionsController,
+    getLastSessionsController,
     getSessionStatisticsController
 };

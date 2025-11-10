@@ -20,16 +20,14 @@ usersRouter.get('/api/users/schedule/weekly',
     scheduleController.getWeeklyScheduleController); //done
 usersRouter.get('/api/users/schedule/academic-period/:academicPeriodId',
     scheduleController.getScheduleByAcademicPeriodController); //done
-usersRouter.get('/api/users/schedule/subject/:subjectId',
-    scheduleController.getScheduleBySubjectController); //done - grouped by subject
 
 //attendance (1)
 usersRouter.get('/api/users/attendance/summary/',
     attendanceController.getAttendanceSummaryController); //done
 
 //sessions (1)
-usersRouter.get('/api/users/sessions/active',
-    sessionController.getActiveSessionsController); //done
+usersRouter.get('/api/users/sessions/last',
+    sessionController.getLastSessionsController); //done - ongoing for students, ongoing+completed for teachers
 
 //academic-periode 
 usersRouter.get('/api/users/academic-periode',

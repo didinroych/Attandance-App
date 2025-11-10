@@ -268,71 +268,82 @@ const getSessionsList = async(request) => {
     });
 };
 
-const getActiveSessions = async(request) => {
+const getLastSessions = async(request) => {
     /**
-     * Get active (ongoing) sessions
-     * For students: sessions where they're marked absent and session is ongoing
-     * For teachers: all ongoing sessions they created
+     * Get last sessions
+     * For students: all ongoing sessions
+     * For teachers: all ongoing and completed sessions
      */
     const { profileId, role } = request;
 
     if (role === 'student') {
-        // Get sessions where student is absent and session is ongoing
-        const sessions = await prismaClient.attendance.findMany({
+        // Get student's class first
+        const student = await prismaClient.student.findUnique({
+            where: { id: profileId },
+            select: { classId: true }
+        });
+
+        if (!student) {
+            throw new ResponseError(404, "Student not found");
+        }
+
+        // Get all ongoing sessions for student's class
+        const sessions = await prismaClient.attendanceSession.findMany({
             where: {
-                studentId: profileId,
-                status: 'absent',
-                attendanceSession: {
-                    status: 'ongoing'
+                status: 'ongoing',
+                classSchedule: {
+                    classId: student.classId
                 }
             },
-            select: {
-                id: true,
-                attendanceSessionId: true,
-                status: true,
-                attendanceSession: {
+            include: {
+                classSchedule: {
                     select: {
-                        date: true,
-                        startedAt: true,
-                        classSchedule: {
+                        class: {
                             select: {
-                                startTime: true,
-                                endTime: true,
-                                room: true,
-                                subject: {
-                                    select: {
-                                        name: true
-                                    }
-                                },
-                                teacher: {
-                                    select: {
-                                        fullName: true
-                                    }
-                                }
+                                name: true
+                            }
+                        },
+                        startTime: true,
+                        endTime: true,
+                        room: true,
+                        subject: {
+                            select: {
+                                name: true
+                            }
+                        },
+                        teacher: {
+                            select: {
+                                fullName: true
                             }
                         }
                     }
                 }
+            },
+            orderBy: {
+                startedAt: 'desc'
             }
         });
 
         return sessions.map(session => ({
-            attendanceId: session.id,
-            sessionId: session.attendanceSessionId,
-            status: session.status,
-            subject: session.attendanceSession.classSchedule.subject.name,
-            teacher: session.attendanceSession.classSchedule.teacher.fullName,
-            room: session.attendanceSession.classSchedule.room,
-            startTime: session.attendanceSession.classSchedule.startTime,
-            endTime: session.attendanceSession.classSchedule.endTime,
-            date: session.attendanceSession.date
+            sessionId: session.id,
+            className: session.classSchedule.class.name,
+            subject: session.classSchedule.subject.name,
+            teacher: session.classSchedule.teacher.fullName,
+            room: session.classSchedule.room,
+            startTime: session.classSchedule.startTime,
+            endTime: session.classSchedule.endTime,
+            date: session.date,
+            startedAt: session.startedAt,
+            status: session.status
         }));
     } else if (role === 'teacher') {
-        // Get all ongoing sessions created by teacher
+        // Get all ongoing and completed sessions created by teacher
         const sessions = await prismaClient.attendanceSession.findMany({
             where: {
                 createdBy: profileId,
-                status: 'ongoing'
+                status: {
+                    in: ['ongoing', 'completed']
+                }
             },
             include: {
                 classSchedule: {
@@ -372,7 +383,8 @@ const getActiveSessions = async(request) => {
             startTime: session.classSchedule.startTime,
             endTime: session.classSchedule.endTime,
             room: session.classSchedule.room,
-            totalStudents: session._count.attendances
+            totalStudents: session._count.attendances,
+            status: session.status
         }));
     } else {
         throw new ResponseError(403, "Invalid role");
@@ -483,7 +495,7 @@ export default {
     createSession,
     getSession,
     getSessionsList,
-    getActiveSessions,
+    getLastSessions,
     updateSessionStatus,
     getSessionStatistics
 };

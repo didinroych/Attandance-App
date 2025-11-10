@@ -3,22 +3,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-/**
- * Scheduler for managing session statuses
- * 
- * Job 1: At 23:59 daily, move 'ongoing' sessions to 'completed'
- * Job 2: Every day, move 'completed' sessions (older than 3 days) to 'finalized'
- */
 
 class SessionScheduler {
     constructor() {
         this.jobs = [];
     }
-
-    /**
-     * Job 1: Complete ongoing sessions at end of day (23:59)
-     * This runs at 23:59 every day
-     */
     scheduleCompleteOngoingSessions() {
         const job = cron.schedule('59 23 * * *', async() => {
             try {
@@ -27,7 +16,7 @@ class SessionScheduler {
                 const result = await prisma.attendanceSession.updateMany({
                     where: {
                         status: 'ongoing',
-                        // Optional: Only complete sessions that actually started
+
                         startedAt: {
                             not: null
                         }
@@ -50,10 +39,6 @@ class SessionScheduler {
         console.log('[Session Scheduler] Scheduled: Complete ongoing sessions at 23:59 daily');
     }
 
-    /**
-     * Job 2: Finalize completed sessions after 3 days
-     * This runs every day at 00:15 (15 minutes after midnight)
-     */
     scheduleFinalizeOldSessions() {
         const job = cron.schedule('15 0 * * *', async() => {
             try {
@@ -89,9 +74,6 @@ class SessionScheduler {
         console.log('[Session Scheduler] Scheduled: Finalize completed sessions at 00:15 daily');
     }
 
-    /**
-     * Start all scheduled jobs
-     */
     start() {
         this.scheduleCompleteOngoingSessions();
         this.scheduleFinalizeOldSessions();
@@ -99,17 +81,11 @@ class SessionScheduler {
         console.log('[Session Scheduler] All jobs started successfully');
     }
 
-    /**
-     * Stop all scheduled jobs
-     */
     stop() {
         this.jobs.forEach(job => job.stop());
         console.log('[Session Scheduler] All jobs stopped');
     }
 
-    /**
-     * Manual trigger for testing - complete ongoing sessions
-     */
     async manualCompleteOngoing() {
         console.log('[Session Scheduler] Manual trigger: Complete ongoing sessions');
 
@@ -130,9 +106,6 @@ class SessionScheduler {
         return result;
     }
 
-    /**
-     * Manual trigger for testing - finalize old completed sessions
-     */
     async manualFinalizeOld() {
         console.log('[Session Scheduler] Manual trigger: Finalize old completed sessions');
 
