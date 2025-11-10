@@ -228,6 +228,33 @@ const bulkCreateSchedulesSchema = Joi.object({
         })
 });
 
+/**
+ * Validation for getting schedule by subject
+ */
+const getScheduleBySubjectSchema = Joi.object({
+    subjectId: Joi.number()
+        .integer()
+        .positive()
+        .required()
+        .messages({
+            'any.required': 'Subject ID is required'
+        }),
+
+    academicPeriodId: Joi.number()
+        .integer()
+        .positive()
+        .optional(),
+
+    profileId: Joi.number()
+        .integer()
+        .positive()
+        .required(),
+
+    role: Joi.string()
+        .valid('teacher', 'student', 'admin')
+        .required()
+});
+
 export {
     getScheduleByDateSchema,
     getWeeklyScheduleSchema,
@@ -236,5 +263,6 @@ export {
     createScheduleSchema,
     updateScheduleSchema,
     deleteScheduleSchema,
-    bulkCreateSchedulesSchema
+    bulkCreateSchedulesSchema,
+    getScheduleBySubjectSchema
 };

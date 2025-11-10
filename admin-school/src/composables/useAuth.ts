@@ -54,10 +54,8 @@ export function createAuth() {
     try {
       isLoading.value = true
       error.value = null
-
-      console.log('Attempting login with:', credentials)
-      const response = await authService.login(credentials)
-      console.log('Login successful, response:', response)
+ 
+      const response = await authService.login(credentials) 
 
       // Store accessToken and user
       token.value = response.accessToken
@@ -90,11 +88,7 @@ export function createAuth() {
       isLoading.value = true
       error.value = null
 
-      await authService.register(data)
-
-      // After registration, user must login
-      // Backend returns user data but no token on registration
-      // Automatically log them in
+      await authService.register(data) 
       await login({ username: data.username, password: data.password })
     } catch (err: any) {
       error.value = err.message || 'Signup failed'
@@ -106,12 +100,9 @@ export function createAuth() {
   }
 
   // Logout
-  const logout = async () => {
-    console.log('🔴 [useAuth] logout() called')
-    try {
-      console.log('🔴 [useAuth] Calling authService.logout()')
-      await authService.logout()
-      console.log('🔴 [useAuth] authService.logout() completed')
+  const logout = async () => { 
+    try { 
+      await authService.logout() 
     } catch (error) {
       console.error('🔴 [useAuth] Error in logout:', error)
     } finally {
@@ -119,8 +110,7 @@ export function createAuth() {
       console.log('🔴 [useAuth] Clearing auth state')
       user.value = null
       token.value = null
-      isAuthenticated.value = false
-      console.log('🔴 [useAuth] Redirecting to /signin')
+      isAuthenticated.value = false 
       // Use window.location for a hard redirect to ensure clean state
       window.location.href = '/signin'
     }

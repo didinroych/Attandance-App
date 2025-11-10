@@ -69,27 +69,32 @@ class AuthService {
   }
 
   /**
+   * Refresh access token
+   * POST /auth/access-token
+   * Uses refresh token from cookies
+   */
+  async refreshAccessToken(): Promise<string> {
+    const response = await api.post<LoginResponse>('/api/auth/access-token')
+    const accessToken = response.data.data.accessToken
+    localStorage.setItem('access_token', accessToken)
+    return accessToken
+  }
+
+  /**
    * Logout user
    * POST /auth/logout
    * Clears refresh token cookie on backend
    */
   async logout(): Promise<void> {
-    console.log('🟠 [authService] logout() called')
-    // Clear localStorage FIRST before making API call
-    console.log('🟠 [authService] Removing access_token from localStorage')
     localStorage.removeItem('access_token')
-    console.log('🟠 [authService] Removing user from localStorage')
     localStorage.removeItem('user')
 
     try {
-      console.log('🟠 [authService] Calling POST /api/auth/logout')
       await api.post('/api/auth/logout')
       console.log('🟠 [authService] Logout API call successful')
     } catch (error) {
       console.error('🟠 [authService] Logout API error (continuing anyway):', error)
-      // Continue with logout even if API call fails (CORS, network, etc.)
     }
-    console.log('🟠 [authService] logout() completed')
   }
 }
 
