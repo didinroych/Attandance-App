@@ -12,7 +12,6 @@ import {
     determineAttendanceStatus,
     validateSessionActive
 } from "../helpers/attendance.helper.js";
-import { getUserClassSessions } from "../validation/class-session-validation.js";
 
 const markAttendance = async(request) => {
     const validated = validate(markAttendanceSchema, request);
@@ -37,7 +36,7 @@ const markAttendance = async(request) => {
     }
 
     if (session.status === 'finalized') {
-        throw new ResponseError(403, "This session already finalized, can't be edit!! Please contact admin");
+        throw new ResponseError(403, "Sessions Finalize, can't be edited");
     }
 
     if (session.createdBy !== profileId) {

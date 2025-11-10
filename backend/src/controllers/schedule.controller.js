@@ -199,7 +199,6 @@ const bulkCreateSchedulesController = async(req, res, next) => {
         next(e);
     }
 };
-
 export default {
     getScheduleByDateController,
     getWeeklyScheduleController,
@@ -208,5 +207,5 @@ export default {
     createScheduleController,
     updateScheduleController,
     deleteScheduleController,
-    bulkCreateSchedulesController
+    bulkCreateSchedulesController,
 };

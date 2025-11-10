@@ -441,15 +441,39 @@ const getScheduleByAcademicPeriod = async(request) => {
         const sessions = await prismaClient.attendanceSession.findMany({
             where: { classScheduleId: { in: scheduleIds } },
             include: {
-                attendances: { select: { status: true } }
+                attendances: { select: { status: true } },
+                classSchedule: {
+                    select: {
+                        subject: { select: { id: true, name: true, code: true } },
+                        class: { select: { name: true } }
+                    }
+                }
             },
-            orderBy: { date: 'desc' }
+            orderBy: { date: 'asc' }
         });
 
-        // Group sessions by schedule and calculate summaries
-        const sessionsBySchedule = sessions.reduce((acc, session) => {
-            if (!acc[session.classScheduleId]) {
-                acc[session.classScheduleId] = [];
+        // Create a map of schedule to class name for subject naming
+        const scheduleClassMap = new Map();
+        schedules.forEach(schedule => {
+            scheduleClassMap.set(schedule.id, schedule.class.name);
+        });
+
+        // Group sessions by subject + class combination
+        const groupedBySubject = sessions.reduce((acc, session, index) => {
+            const subjectId = session.classSchedule.subject.id;
+            const className = session.classSchedule.class.name;
+            const key = `${subjectId}-${className}`;
+
+            if (!acc[key]) {
+                acc[key] = {
+                    subject: {
+                        id: session.classSchedule.subject.id,
+                        name: `${session.classSchedule.subject.name} - ${className}`,
+                        code: session.classSchedule.subject.code
+                    },
+                    totalMeetings: 0,
+                    sessions: []
+                };
             }
 
             const attendances = session.attendances;
@@ -460,36 +484,15 @@ const getScheduleByAcademicPeriod = async(request) => {
                 excused: attendances.filter(a => a.status === 'excused').length
             };
 
-            acc[session.classScheduleId].push({
+            acc[key].totalMeetings++;
+            acc[key].sessions.push({
                 sessionId: session.id,
+                meetingNumber: acc[key].totalMeetings,
                 date: session.date,
                 status: session.status,
-                startedAt: session.startedAt,
-                endedAt: session.endedAt,
                 summary: summary
             });
 
-            return acc;
-        }, {});
-
-        const groupedSchedules = schedules.reduce((acc, schedule) => {
-            const scheduleSessions = sessionsBySchedule[schedule.id] || [];
-
-            acc[schedule.id] = {
-                id: schedule.id,
-                className: schedule.class.name,
-                gradeLevel: schedule.class.gradeLevel,
-                subjectName: schedule.subject.name,
-                subjectCode: schedule.subject.code,
-                teacherId: schedule.teacherId,
-                teacherName: schedule.teacher.fullName,
-                dayOfWeek: schedule.dayOfWeek,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
-                room: schedule.room,
-                totalSessions: scheduleSessions.length,
-                sessions: scheduleSessions
-            };
             return acc;
         }, {});
 
@@ -502,7 +505,7 @@ const getScheduleByAcademicPeriod = async(request) => {
                 isActive: academicPeriod.isActive
             },
             totalSchedules: schedules.length,
-            schedules: groupedSchedules
+            subjects: Object.values(groupedBySubject)
         };
     }
     // STUDENT VIEW
@@ -550,77 +553,55 @@ const getScheduleByAcademicPeriod = async(request) => {
                         checkInTime: true,
                         notes: true
                     }
+                },
+                classSchedule: {
+                    select: {
+                        subject: { select: { id: true, name: true, code: true } }
+                    }
                 }
             },
-            orderBy: { date: 'desc' }
+            orderBy: { date: 'asc' }
         });
 
-        // Group sessions and calculate summaries
-        const sessionsBySchedule = sessions.reduce((acc, session) => {
-            if (!acc[session.classScheduleId]) {
-                acc[session.classScheduleId] = [];
+        // Group sessions by subject
+        const groupedBySubject = sessions.reduce((acc, session) => {
+            const subjectId = session.classSchedule.subject.id;
+
+            if (!acc[subjectId]) {
+                acc[subjectId] = {
+                    subject: {
+                        id: session.classSchedule.subject.id,
+                        name: session.classSchedule.subject.name,
+                        code: session.classSchedule.subject.code
+                    },
+                    totalMeetings: 0,
+                    sessions: []
+                };
             }
 
             const myAttendance = session.attendances[0] || null;
 
-            acc[session.classScheduleId].push({
+            // Format attendance status (capitalize first letter)
+            let attendanceStatus = 'Not marked';
+            if (myAttendance) {
+                const status = myAttendance.status;
+                attendanceStatus = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+
+            acc[subjectId].totalMeetings++;
+            acc[subjectId].sessions.push({
                 sessionId: session.id,
+                meetingNumber: acc[subjectId].totalMeetings,
                 date: session.date,
                 status: session.status,
-                myAttendance: myAttendance ? {
+                myAttendance: attendanceStatus,
+                attendanceDetails: myAttendance ? {
                     attendanceId: myAttendance.id,
-                    status: myAttendance.status,
                     checkInTime: myAttendance.checkInTime,
                     notes: myAttendance.notes
                 } : null
             });
 
-            return acc;
-        }, {});
-
-        // Calculate summary by schedule
-        const summaryBySchedule = {};
-        Object.keys(sessionsBySchedule).forEach(scheduleId => {
-            const scheduleSessions = sessionsBySchedule[scheduleId];
-            const summary = { present: 0, absent: 0, late: 0, excused: 0 };
-
-            scheduleSessions.forEach(session => {
-                if (session.myAttendance) {
-                    const status = session.myAttendance.status.toLowerCase();
-                    if (summary.hasOwnProperty(status)) {
-                        summary[status]++;
-                    }
-                }
-            });
-
-            summaryBySchedule[scheduleId] = summary;
-        });
-
-        const groupedSchedules = schedules.reduce((acc, schedule) => {
-            const scheduleSessions = sessionsBySchedule[schedule.id] || [];
-            const summary = summaryBySchedule[schedule.id] || {
-                present: 0,
-                absent: 0,
-                late: 0,
-                excused: 0
-            };
-
-            acc[schedule.id] = {
-                id: schedule.id,
-                className: schedule.class.name,
-                gradeLevel: schedule.class.gradeLevel,
-                subjectName: schedule.subject.name,
-                subjectCode: schedule.subject.code,
-                teacherId: schedule.teacherId,
-                teacherName: schedule.teacher.fullName,
-                dayOfWeek: schedule.dayOfWeek,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime,
-                room: schedule.room,
-                totalSessions: scheduleSessions.length,
-                sessions: scheduleSessions,
-                summary: summary
-            };
             return acc;
         }, {});
 
@@ -633,7 +614,7 @@ const getScheduleByAcademicPeriod = async(request) => {
                 isActive: academicPeriod.isActive
             },
             totalSchedules: schedules.length,
-            schedules: groupedSchedules
+            subjects: Object.values(groupedBySubject)
         };
     } else {
         throw new ResponseError(403, "Invalid role");
@@ -948,5 +929,5 @@ export default {
     createSchedule,
     updateSchedule,
     deleteSchedule,
-    bulkCreateSchedules
+    bulkCreateSchedules,
 };

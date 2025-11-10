@@ -21,6 +21,46 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/user/student',
+      name: 'StudentManagement',
+      component: () => import('../views/Admin/StudentManagement.vue'),
+      meta: {
+        title: 'Student Management',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
+      path: '/admin/user/teacher',
+      name: 'TeacherManagement',
+      component: () => import('../views/Admin/TeacherManagement.vue'),
+      meta: {
+        title: 'Teacher Management',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
+      path: '/admin/academic/academic-periode',
+      name: 'AcademicPeriodeManagement',
+      component: () => import('../views/Admin/AcademicPeriodeManagement.vue'),
+      meta: {
+        title: 'Academic Periode Management',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
+      path: '/admin/academic/subject',
+      name: 'SubjectManagement',
+      component: () => import('../views/Admin/SubjectManagement.vue'),
+      meta: {
+        title: 'Subject Management',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
       path: '/teacher',
       name: 'TeacherDashboard',
       component: () => import('../views/TeacherDashboard.vue'),

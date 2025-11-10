@@ -240,23 +240,23 @@ const menuGroups = [
       {
         icon: GridIcon,
         name: "Dashboard",
-        path: "/",
+        path: "/admin",
       }, 
       {
         name: "User Management",
         icon: UserCircleIcon,
         subItems: [
-          { name: "Student", path: "/user/student", pro: false },
-          { name: "teacher", path: "/user/teacher", pro: false },
+          { name: "Student", path: "/admin/user/student", pro: false },
+          { name: "teacher", path: "/admin/user/teacher", pro: false },
         ],
       }, 
       {
         name: "Academic Management",
         icon: ListIcon,
         subItems: [
-          { name: "Academic Periode", path: "/academic/academic-periode", pro: false },
-          { name: "Subject", path: "/academic/subject", pro: false },
-          { name: "Class", path: "/academic/class", pro: false },
+          { name: "Academic Periode", path: "/admin/academic/academic-periode", pro: false },
+          { name: "Subject", path: "/admin/academic/subject", pro: false },
+          { name: "Class", path: "/admin/academic/class", pro: false },
         ],
       }, 
       {
@@ -272,65 +272,9 @@ const menuGroups = [
         subItems: [
           { name: "School Information", path: "/settings/school", pro: false },
         ],
-      }, 
-      {
-        icon: CalenderIcon,
-        name: "Calendar",
-        path: "/calendar",
-      },
-      {
-        icon: UserCircleIcon,
-        name: "User Profile",
-        path: "/profile",
-      },
-
-      {
-        name: "Forms",
-        icon: ListIcon,
-        subItems: [
-          { name: "Form Elements", path: "/form-elements", pro: false },
-        ],
-      },
-      {
-        name: "Tables",
-        icon: TableIcon,
-        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-      },
-      {
-        name: "Pages",
-        icon: PageIcon,
-        subItems: [
-          { name: "Black Page", path: "/blank", pro: false },
-          { name: "404 Page", path: "/error-404", pro: false },
-        ],
-      },
+      }
     ],
-  },
-  {
-    title: "Others",
-    items: [
-      {
-        icon: PieChartIcon,
-        name: "Charts",
-        subItems: [
-          { name: "Line Chart", path: "/line-chart", pro: false },
-          { name: "Bar Chart", path: "/bar-chart", pro: false },
-        ],
-      },
-      {
-        icon: BoxCubeIcon,
-        name: "Ui Elements",
-        subItems: [
-          { name: "Alerts", path: "/alerts", pro: false },
-          { name: "Avatars", path: "/avatars", pro: false },
-          { name: "Badge", path: "/badge", pro: false },
-          { name: "Buttons", path: "/buttons", pro: false },
-          { name: "Images", path: "/images", pro: false },
-          { name: "Videos", path: "/videos", pro: false },
-        ],
-      },
-    ],
-  },
+  }
 ];
 
 const isActive = (path) => route.path === path;

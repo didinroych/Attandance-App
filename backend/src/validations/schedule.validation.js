@@ -228,6 +228,7 @@ const bulkCreateSchedulesSchema = Joi.object({
         })
 });
 
+
 export {
     getScheduleByDateSchema,
     getWeeklyScheduleSchema,
@@ -236,5 +237,5 @@ export {
     createScheduleSchema,
     updateScheduleSchema,
     deleteScheduleSchema,
-    bulkCreateSchedulesSchema
+    bulkCreateSchedulesSchema,
 };

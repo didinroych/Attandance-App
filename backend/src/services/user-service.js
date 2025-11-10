@@ -5,7 +5,7 @@ import {
     updateStudentProfileValidation,
     updateTeacherProfileValidation,
     updateUserValidation
-} from "../validation/user-validation.js";
+} from "../validations/user-validation.js";
 import { prismaClient } from "../application/database.js";
 import { ResponseError } from "../error/response-error.js";
 import bcrypt from "bcrypt";
