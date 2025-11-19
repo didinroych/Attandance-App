@@ -7,6 +7,7 @@ import dashboardAdminController from "../controllers/dashboard-admin.controller.
 import UserManagementController from "../controllers/User-management.controller.js";
 import subjectController from "../controllers/subject.controller.js";
 import academicPeriodeController from "../controllers/academic-periode.controller.js";
+import classController from "../controllers/class.controller.js";
 import schedulerTestController from "../controllers/scheduler-test.controller.js";
 
 
@@ -53,6 +54,17 @@ adminRouter.patch('/admin/academic-periods/:id',
 adminRouter.delete('/admin/academic-periods/:id',
     academicPeriodeController.deleteAcademicPeriodController);
 
+//class management (5)
+adminRouter.get('/admin/classes',
+    classController.getClassListController);
+adminRouter.get('/admin/classes/:id',
+    classController.getClassByIdController);
+adminRouter.post('/admin/classes',
+    classController.createClassController);
+adminRouter.patch('/admin/classes/:id',
+    classController.updateClassController);
+adminRouter.delete('/admin/classes/:id',
+    classController.deleteClassController);
 
 //schedule (4)
 adminRouter.post('/admin/schedules',

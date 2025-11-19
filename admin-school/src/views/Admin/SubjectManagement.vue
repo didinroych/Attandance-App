@@ -225,7 +225,7 @@
                     {{ getDayName(schedule.dayOfWeek) }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ schedule.startTime }} - {{ schedule.endTime }}
+                    {{ formatTime(schedule.startTime) }} - {{ formatTime(schedule.endTime) }}
                   </p>
                 </div>
               </div>
@@ -446,6 +446,14 @@ const formatDate = (date?: string) => {
 const getDayName = (dayOfWeek: number) => {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   return days[dayOfWeek] || '-'
+}
+
+const formatTime = (time?: string) => {
+  if (!time) return '-'
+  const date = new Date(time)
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
 }
 
 // Initialize
