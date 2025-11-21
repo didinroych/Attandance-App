@@ -1,5 +1,6 @@
 import { ResponseError } from "../error/response-error.js";
 import attendanceService from "../services/attendance.service.js";
+import attendanceCheckInService from "../services/attendance-checkin.service.js";
 
 // POST /api/teacher/sessions/:sessionId/attendance
 const markAttendanceController = async(req, res, next) => {
@@ -30,30 +31,61 @@ const markAttendanceController = async(req, res, next) => {
     }
 };
 
-// POST /api/student/attendance/check-in == Ini G aktif
+// POST /api/student/attendance/check-in
+// Student self check-in using face recognition
 const studentCheckInController = async(req, res, next) => {
     try {
         if (req.user.role !== "student") {
             throw new ResponseError(403, "Only students can check in");
         }
 
+        // Check if image file exists
+        if (!req.files || !req.files.image) {
+            throw new ResponseError(400, 'Image file is required for face verification');
+        }
+
+        const imageFile = req.files.image;
+
+        // Validate file type
+        const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedMimeTypes.includes(imageFile.mimetype)) {
+            throw new ResponseError(400, 'Invalid image format. Allowed formats: JPEG, JPG, PNG');
+        }
+
+        // Session ID is optional - if not provided, find the ongoing session
+        const sessionId = req.body.sessionId ? parseInt(req.body.sessionId) : null;
+
         const request = {
-            sessionId: req.body.sessionId,
+            sessionId: sessionId,
             studentId: req.user.profileId,
-            method: req.body.method || 'face_recognition',
-            faceConfidence: req.body.faceConfidence
+            imageBuffer: imageFile.data
         };
 
-        const result = await attendanceService.studentCheckIn(request);
+        const result = await attendanceCheckInService.studentCheckIn(request);
+
+        if (!result.success) {
+            return res.status(200).json({
+                success: false,
+                message: result.message,
+                verified: result.verified || false,
+                hasSession: result.hasSession !== undefined ? result.hasSession : true,
+                alreadyCheckedIn: result.alreadyCheckedIn || false,
+                sessionStatus: result.sessionStatus,
+                attendance: result.attendance
+            });
+        }
 
         res.status(200).json({
-            data: result
+            success: true,
+            message: result.message,
+            data: result.data
         });
     } catch (e) {
         next(e);
     }
 };
 
+// GET /api/users/attendance/summary
 const getAttendanceSummaryController = async(req, res, next) => {
     try {
         const request = {

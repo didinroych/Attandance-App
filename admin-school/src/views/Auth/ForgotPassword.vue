@@ -116,9 +116,9 @@
               <router-link to="/" class="block mb-4">
                 <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
               </router-link>
-              <p class="text-center text-gray-400 dark:text-white/60">
+              <!-- <p class="text-center text-gray-400 dark:text-white/60">
                 Free and Open-Source Tailwind CSS Admin Dashboard Template
-              </p>
+              </p> -->
             </div>
           </div>
         </div>

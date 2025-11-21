@@ -91,6 +91,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/teacher/kiosk-mode',
+      name: 'TeacherKioskMode',
+      component: () => import('../views/Teacher/KioskMode.vue'),
+      meta: {
+        title: 'Attendance Kiosk Mode',
+        requiresAuth: true,
+        requiresRole: 'teacher',
+      },
+    },
+    {
       path: '/signin',
       name: 'Signin',
       component: () => import('../views/Auth/Signin.vue'),

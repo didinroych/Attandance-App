@@ -9,6 +9,7 @@ import subjectController from "../controllers/subject.controller.js";
 import academicPeriodeController from "../controllers/academic-periode.controller.js";
 import classController from "../controllers/class.controller.js";
 import schedulerTestController from "../controllers/scheduler-test.controller.js";
+import faceController from "../controllers/face.controller.js";
 
 
 const adminRouter = new express.Router();
@@ -84,11 +85,16 @@ adminRouter.get('/admin/attendance/analytics',
 adminRouter.get('/admin/sessions/statistics',
     sessionController.getSessionStatisticsController); //iki hapus ae next
 
-// Scheduler test endpoints (FOR TESTING ONLY - Remove in production or add proper auth)
+// Scheduler test endpoints (FOR TESTING ONLY)
 adminRouter.post('/admin/scheduler/complete-ongoing',
     schedulerTestController.manualCompleteOngoingController);
 adminRouter.post('/admin/scheduler/finalize-old',
     schedulerTestController.manualFinalizeOldController);
+
+// ===== FACE RECOGNITION ENDPOINTS =====
+// Bulk register student faces (admin only)
+adminRouter.post('/admin/students/register-faces-bulk',
+    faceController.bulkRegisterFacesController);
 
 export {
     adminRouter
