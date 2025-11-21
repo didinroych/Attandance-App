@@ -7,7 +7,9 @@ import dashboardAdminController from "../controllers/dashboard-admin.controller.
 import UserManagementController from "../controllers/User-management.controller.js";
 import subjectController from "../controllers/subject.controller.js";
 import academicPeriodeController from "../controllers/academic-periode.controller.js";
+import classController from "../controllers/class.controller.js";
 import schedulerTestController from "../controllers/scheduler-test.controller.js";
+import faceController from "../controllers/face.controller.js";
 
 
 const adminRouter = new express.Router();
@@ -53,6 +55,17 @@ adminRouter.patch('/admin/academic-periods/:id',
 adminRouter.delete('/admin/academic-periods/:id',
     academicPeriodeController.deleteAcademicPeriodController);
 
+//class management (5)
+adminRouter.get('/admin/classes',
+    classController.getClassListController);
+adminRouter.get('/admin/classes/:id',
+    classController.getClassByIdController);
+adminRouter.post('/admin/classes',
+    classController.createClassController);
+adminRouter.patch('/admin/classes/:id',
+    classController.updateClassController);
+adminRouter.delete('/admin/classes/:id',
+    classController.deleteClassController);
 
 //schedule (4)
 adminRouter.post('/admin/schedules',
@@ -72,11 +85,16 @@ adminRouter.get('/admin/attendance/analytics',
 adminRouter.get('/admin/sessions/statistics',
     sessionController.getSessionStatisticsController); //iki hapus ae next
 
-// Scheduler test endpoints (FOR TESTING ONLY - Remove in production or add proper auth)
+// Scheduler test endpoints (FOR TESTING ONLY)
 adminRouter.post('/admin/scheduler/complete-ongoing',
     schedulerTestController.manualCompleteOngoingController);
 adminRouter.post('/admin/scheduler/finalize-old',
     schedulerTestController.manualFinalizeOldController);
+
+// ===== FACE RECOGNITION ENDPOINTS =====
+// Bulk register student faces (admin only)
+adminRouter.post('/admin/students/register-faces-bulk',
+    faceController.bulkRegisterFacesController);
 
 export {
     adminRouter

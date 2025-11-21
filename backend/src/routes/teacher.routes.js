@@ -3,6 +3,7 @@ import sessionController from '../controllers/session.controller.js';
 import { authMiddleware } from '../middleware/auth-middleware.js';
 import scheduleController from "../controllers/schedule.controller.js";
 import attendanceController from "../controllers/attendance.controller.js";
+import faceController from '../controllers/face.controller.js';
 
 const teacherRouter = new express.Router();
 teacherRouter.use(authMiddleware);
@@ -26,6 +27,9 @@ teacherRouter.post('/api/teacher/sessions/:sessionId/attendance',
     attendanceController.markAttendanceController); //done
 teacherRouter.get('/api/teacher/attendance/report/export',
     attendanceController.exportAttendanceReportController); //done baru export ke json
+// Session-based face verification & attendance marking
+teacherRouter.post('/api/teacher/sessions/:sessionId/verify-attendance',
+    faceController.verifySessionAttendanceController);
 
 //Total ada 7 endpoint
 export {

@@ -61,11 +61,41 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/academic/class',
+      name: 'ClassManagement',
+      component: () => import('../views/Admin/ClassManagement.vue'),
+      meta: {
+        title: 'Class Management',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
+      path: '/admin/academic/class/:classId',
+      name: 'ClassDetail',
+      component: () => import('../views/Admin/ClassDetail.vue'),
+      meta: {
+        title: 'Class Details',
+        requiresAuth: true,
+        requiresRole: 'admin',
+      },
+    },
+    {
       path: '/teacher',
       name: 'TeacherDashboard',
       component: () => import('../views/TeacherDashboard.vue'),
       meta: {
         title: 'Teacher Dashboard',
+        requiresAuth: true,
+        requiresRole: 'teacher',
+      },
+    },
+    {
+      path: '/teacher/kiosk-mode',
+      name: 'TeacherKioskMode',
+      component: () => import('../views/Teacher/KioskMode.vue'),
+      meta: {
+        title: 'Attendance Kiosk Mode',
         requiresAuth: true,
         requiresRole: 'teacher',
       },

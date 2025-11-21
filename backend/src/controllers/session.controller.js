@@ -117,7 +117,8 @@ const getLastSessionsController = async(req, res, next) => {
 
         const request = {
             profileId: req.user.profileId,
-            role: req.user.role
+            role: req.user.role,
+            status: req.query.status
         };
 
         const result = await sessionService.getLastSessions(request);

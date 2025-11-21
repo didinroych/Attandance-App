@@ -5,6 +5,7 @@ import attendanceController from "../controllers/attendance.controller.js";
 import sessionController from "../controllers/session.controller.js";
 import academicController from "../controllers/academic-periode.controller.js";
 import userController from "../controllers/user-controller.js";
+import faceController from "../controllers/face.controller.js";
 
 const usersRouter = new express.Router();
 usersRouter.use(authMiddleware);
@@ -32,6 +33,23 @@ usersRouter.get('/api/users/sessions/last',
 //academic-periode 
 usersRouter.get('/api/users/academic-periode',
     academicController.getAcademicPeriodCon); //done
+
+// ===== FACE RECOGNITION ENDPOINTS =====
+// Register student face (can be used by student, teacher, or admin)
+usersRouter.post('/api/users/register-face',
+    faceController.registerFaceController);
+
+// Verify face and optionally mark attendance (teacher/admin only)
+usersRouter.post('/api/users/verify-face',
+    faceController.verifyFaceController);
+
+// Get student face information
+usersRouter.get('/api/users/:studentId/face',
+    faceController.getStudentFaceController);
+
+// Deactivate student face (admin/teacher only)
+usersRouter.delete('/api/users/:studentId/face',
+    faceController.deactivateFaceController);
 
 export {
     usersRouter

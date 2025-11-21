@@ -274,7 +274,7 @@ const getLastSessions = async(request) => {
      * For students: all ongoing sessions
      * For teachers: all ongoing and completed sessions
      */
-    const { profileId, role } = request;
+    const { profileId, role, status } = request;
 
     if (role === 'student') {
         // Get student's class first
@@ -341,9 +341,11 @@ const getLastSessions = async(request) => {
         const sessions = await prismaClient.attendanceSession.findMany({
             where: {
                 createdBy: profileId,
-                status: {
-                    in: ['ongoing', 'completed']
-                }
+                ...(status ? { status: status } : {
+                    status: {
+                        in: ['ongoing', 'completed']
+                    }
+                })
             },
             include: {
                 classSchedule: {
