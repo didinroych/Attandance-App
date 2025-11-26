@@ -18,75 +18,128 @@ class ProfileTab extends StatelessWidget {
     }
   }
 
-  // --- FUNGSI DIALOG DIPERBARUI ---
+  // --- FUNGSI DIALOG LOGOUT (REFINED UI) ---
   Future<void> _showLogoutConfirmation(
     BuildContext context,
     AuthProvider authProvider,
   ) async {
     final theme = Theme.of(context);
-    // Tentukan tinggi tombol yang konsisten
-    const double buttonMinHeight = 44;
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User harus menekan tombol
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Logout'),
-          content: const SingleChildScrollView(
-            child: Text('Apakah Anda yakin ingin keluar dari akun ini?'),
-          ),
-
+        return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
-          actionsPadding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 12.0,
-          ),
-          actions: <Widget>[
-            Row(
-              children: [
-                // Tombol Batal (dibuat Expanded)
-                Expanded(
-                  child: OutlinedButton(
-                    child: const Text('Batal'),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: theme.primaryColor),
-                      foregroundColor: theme.primaryColor,
-                      // --- PERBAIKAN: Paksa tinggi minimum ---
-                      minimumSize: const Size(0, buttonMinHeight),
-                    ),
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop(); // Tutup dialog
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10), // Jarak antar tombol
-                // Tombol Logout (dibuat Expanded)
-                Expanded(
-                  child: ElevatedButton(
-                    child: const Text('Logout'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      foregroundColor: theme.colorScheme.onError,
-                      // --- PERBAIKAN: Paksa tinggi minimum ---
-                      minimumSize: const Size(0, buttonMinHeight),
-                    ),
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop(); // Tutup dialog
-                      authProvider.logout(); // Panggil fungsi logout
-                    },
-                  ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // --- 1. Header Icon (Logout / Warning) ---
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    // Warna merah soft untuk indikasi aksi keluar
+                    color: theme.colorScheme.error.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    size: 32,
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // --- 2. Title ---
+                const Text(
+                  'Konfirmasi Logout',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // --- 3. Subtitle ---
+                Text(
+                  'Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan berakhir.',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+
+                // --- 4. Action Buttons ---
+                Row(
+                  children: [
+                    // Tombol Batal (Minimalis)
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop(); // Tutup dialog
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Tombol Logout (Merah Solid)
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop(); // Tutup dialog
+                          authProvider.logout(); // Eksekusi logout
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.error,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
-  // --- AKHIR FUNGSI DIALOG ---
 
   @override
   Widget build(BuildContext context) {
