@@ -30,10 +30,7 @@ class AuthService {
    * refreshToken is in cookies automatically
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await api.post<LoginResponse>('/api/auth/login', credentials)
-    console.log('Login response:', response.data)
-    // Transform the nested response to our internal format
-    // Backend returns: { data: { user: {...}, accessToken: "..." } }
+    const response = await api.post<LoginResponse>('/api/auth/login', credentials) 
     return {
       user: response.data.data.user,
       accessToken: response.data.data.accessToken,

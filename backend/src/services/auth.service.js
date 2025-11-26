@@ -55,6 +55,7 @@ const login = async(request) => {
         select: {
             id: true,
             username: true,
+            email: true,
             password: true,
             role: true
         }
@@ -75,7 +76,6 @@ const login = async(request) => {
     if (user.role === 'student' && roleSpecificData) {
         minimalRoleData = {
             profileId: roleSpecificData.profileId,
-            // studentId: roleSpecificData.studentId,
             classId: roleSpecificData.classId
         };
     } else if (user.role === 'teacher' && roleSpecificData) {
@@ -90,6 +90,7 @@ const login = async(request) => {
     const accessTokenPayload = {
         id: user.id,
         username: user.username,
+        email: user.email,
         role: user.role,
         ...minimalRoleData
     }
@@ -98,6 +99,7 @@ const login = async(request) => {
     const refreshTokenPayload = {
         id: user.id,
         username: user.username,
+        // email: user.email,
         role: user.role,
         ...minimalRoleData
     }
@@ -115,6 +117,7 @@ const login = async(request) => {
         user: {
             id: user.id,
             username: user.username,
+            email: user.email,
             role: user.role
         },
         accessToken: accessToken,
@@ -168,6 +171,7 @@ const renewAccesToken = async(refreshToken) => {
                     select: {
                         id: true,
                         username: true,
+                        email: true,
                         role: true
                     }
 
@@ -199,6 +203,7 @@ const renewAccesToken = async(refreshToken) => {
         const newAccessToken = jwt.sign({
             id: storedRefreshToken.user.id,
             username: storedRefreshToken.user.username,
+            email: storedRefreshToken.user.email,
             role: storedRefreshToken.user.role,
             ...minimalRoleData
         }, process.env.ACCESS_TOKEN, { expiresIn: '120m' })
@@ -208,6 +213,7 @@ const renewAccesToken = async(refreshToken) => {
             user: {
                 id: storedRefreshToken.user.id,
                 username: storedRefreshToken.user.username,
+                email: storedRefreshToken.user.email,
                 role: storedRefreshToken.user.role,
                 ...minimalRoleData
             }

@@ -1,0 +1,59 @@
+# Nginx Configuration for Vue.js SPA (admin-attendify.chafi.dev)
+# This is a reference template for aaPanel nginx configuration
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name admin-attendify.chafi.dev;
+
+    # Document root - where your built files are located
+    root /www/wwwroot/admin-attendify.chafi.dev;
+    index index.html;
+
+    # Gzip compression for better performance
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/javascript application/json;
+
+    # SPA routing configuration - CRITICAL for Vue Router
+    # This prevents 403/404 errors when accessing routes directly
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets for better performance
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # Disable access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Access and error logs
+    access_log /www/wwwlogs/admin-attendify.chafi.dev.log;
+    error_log /www/wwwlogs/admin-attendify.chafi.dev.error.log;
+}
+
+# HTTPS configuration (after SSL certificate is installed)
+# aaPanel will automatically add this section when you apply Let's Encrypt SSL
+# server {
+#     listen 443 ssl http2;
+#     listen [::]:443 ssl http2;
+#     server_name admin-attendify.chafi.dev;
+#
+#     ssl_certificate /www/server/panel/vhost/cert/admin-attendify.chafi.dev/fullchain.pem;
+#     ssl_certificate_key /www/server/panel/vhost/cert/admin-attendify.chafi.dev/privkey.pem;
+#
+#     # ... rest of configuration same as above
+# }

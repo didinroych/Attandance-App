@@ -62,7 +62,7 @@ api.interceptors.response.use(
         // Refresh token is invalid, logout user
         localStorage.removeItem('access_token')
         localStorage.removeItem('user')
-        window.location.href = '/signin'
+        window.location.href = window.location.origin + '/signin'
         return Promise.reject(error)
       }
 
@@ -131,7 +131,7 @@ api.interceptors.response.use(
           // Clear auth data and redirect to login
           localStorage.removeItem('access_token')
           localStorage.removeItem('user')
-          window.location.href = '/signin'
+          window.location.href = window.location.origin + '/signin'
 
           return Promise.reject(refreshError)
         }

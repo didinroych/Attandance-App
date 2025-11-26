@@ -67,7 +67,11 @@ adminRouter.patch('/admin/classes/:id',
 adminRouter.delete('/admin/classes/:id',
     classController.deleteClassController);
 
-//schedule (4)
+//schedule (6)
+adminRouter.get('/admin/schedules',
+    scheduleController.getScheduleListController);
+adminRouter.get('/admin/schedules/:id',
+    scheduleController.getScheduleByIdController);
 adminRouter.post('/admin/schedules',
     scheduleController.createScheduleController);
 adminRouter.patch('/admin/schedules/:id',
