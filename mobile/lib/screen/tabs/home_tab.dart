@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:mobile/providers/auth_providers.dart';
-import 'package:mobile/screen/tabs/attendance_form_screen.dart';
+import 'package:mobile/screen/teacher/attendance_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -366,51 +366,160 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
+  /// Dialog Konfirmasi Pembuatan Sesi (Refined UI)
   Future<String?> _showCreateSessionDialog(
     BuildContext context,
     String subjectName,
   ) async {
     final notesController = TextEditingController();
+    final theme = Theme.of(context);
 
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Buat Sesi Baru?'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Anda akan memulai sesi untuk mata pelajaran:'),
-              Text(
-                subjectName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Catatan (Opsional)',
-                  hintText: 'Mis: Chapter 8...',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.sentences,
-              ),
-            ],
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(null),
-              child: const Text('Batal'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(notesController.text);
-              },
-              child: const Text('Buat Sesi'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // --- 1. Header Icon ---
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.class_outlined,
+                    size: 32,
+                    color: theme.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // --- 2. Title & Subject ---
+                const Text(
+                  'Mulai Sesi Kelas',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Anda akan memulai sesi untuk:',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subjectName,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800, // Lebih tebal
+                    color: theme.primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // --- 3. Input Field (Notes) ---
+                TextField(
+                  controller: notesController,
+                  maxLines: 2, // Sedikit lebih tinggi
+                  minLines: 1,
+                  decoration: InputDecoration(
+                    labelText: 'Catatan (Opsional)',
+                    hintText: 'Contoh: Chapter 8 - Diskusi Kelompok',
+                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    prefixIcon: const Icon(Icons.edit_note, size: 20),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none, // Borderless style
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: theme.primaryColor,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 32),
+
+                // --- 4. Action Buttons ---
+                Row(
+                  children: [
+                    // Tombol Batal
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(null),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Tombol Mulai (Prominent)
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(notesController.text);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Mulai Sesi',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
