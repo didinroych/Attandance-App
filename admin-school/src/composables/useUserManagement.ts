@@ -128,6 +128,36 @@ export function useUserManagement<T extends Student | Teacher>(
   }
 
   /**
+   * Create a single user by using the bulk endpoint with a single-item array
+   */
+  const createUser = async (userData: StudentFormData | TeacherFormData): Promise<boolean> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      // Use bulk endpoint with single item array
+      const result = await userManagementService.bulkCreateUsers([userData])
+
+      // Check if creation was successful
+      if (result && result.successCount > 0) {
+        await fetchUsers(1) // Refresh list and go to first page
+        return true
+      } else {
+        // Extract error message from bulk result
+        const errorMsg = result?.errors?.[0] || 'Failed to create user'
+        error.value = errorMsg
+        return false
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.message || 'Failed to create user'
+      console.error('Error creating user:', err)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
    * Bulk create users from CSV
    */
   const bulkCreateUsers = async (
@@ -211,6 +241,7 @@ export function useUserManagement<T extends Student | Teacher>(
     clearSearch,
     refresh,
     deleteUser,
+    createUser,
     bulkCreateUsers,
     updateUserStatus,
     updateUser

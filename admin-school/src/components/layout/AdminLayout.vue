@@ -15,7 +15,7 @@
         <p class="text-sm text-center text-gray-500 dark:text-gray-400">
           Designed and Developed by 
           <a 
-            href="https://kp.chafi.dev/" 
+            href="https://old-attendify.chafi.dev/" 
             target="_blank" 
             rel="noopener noreferrer"
             class="text-brand-500 hover:text-brand-600 transition-colors duration-200 font-medium"

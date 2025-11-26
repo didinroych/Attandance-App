@@ -48,7 +48,8 @@
               :class="column.nowrap !== false ? 'whitespace-nowrap' : ''"
             >
               <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]">
-                {{ formatCell(row, column) }}
+                <span v-if="column.format" v-html="formatCell(row, column)"></span>
+                <span v-else>{{ formatCell(row, column) }}</span>
               </slot>
             </td>
             <td v-if="hasActions" class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
@@ -226,8 +227,16 @@ const handleLimitChange = () => {
   emit('limit-change', pageLimit.value)
 }
 
+// Helper to access nested properties (e.g., "class.name")
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, prop) => current?.[prop], obj)
+}
+
 const formatCell = (row: any, column: TableColumn) => {
-  const value = row[column.key]
+  const value = column.key.includes('.')
+    ? getNestedValue(row, column.key)
+    : row[column.key]
+
   if (column.format) {
     return column.format(value, row)
   }

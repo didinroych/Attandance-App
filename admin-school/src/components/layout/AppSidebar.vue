@@ -217,14 +217,13 @@ import { useRoute } from "vue-router";
 import {
   GridIcon,
   CalenderIcon,
-  UserCircleIcon, 
+  UserCircleIcon,
   PieChartIcon,
   ChevronDownIcon,
   HorizontalDots,
   PageIcon,
   TableIcon,
-  ListIcon, 
-  SettingsIcon
+  ListIcon
 } from "../../icons"; 
 import BoxCubeIcon from "@/icons/BoxCubeIcon.vue";
 import { useSidebar } from "@/composables/useSidebar";
@@ -264,13 +263,6 @@ const menuGroups = [
         icon: CalenderIcon,
         subItems: [
           { name: "Class Schedule", path: "/schedule/class-schedule", pro: false },
-        ],
-      }, 
-      {
-        name: "Settings",
-        icon: SettingsIcon,
-        subItems: [
-          { name: "School Information", path: "/settings/school", pro: false },
         ],
       }
     ],

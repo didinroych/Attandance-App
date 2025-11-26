@@ -16,6 +16,7 @@ import {
     getEndOfWeek
 } from "../helpers/date.helper.js";
 import {
+    timeToDateTime,
     checkTimeConflict,
     mergeSchedulesWithSessions
 } from "../helpers/schedule.helper.js";
@@ -23,12 +24,249 @@ import {
 const convertToPrismaDay = (jsDay) => {
     return jsDay === 0 ? 7 : jsDay;
 };
+
+const getDayName = (dayOfWeek) => {
+    const days = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return days[dayOfWeek] || 'Unknown';
+};
+
 /**
  * ============================================
  * SCHEDULE SERVICE
  * Handles all schedule-related business logic
  * ============================================
  */
+
+/**
+ * Get list of schedules with pagination and filters (Admin only)
+ * @param {Object} request - { page, limit, search, sortBy, sortOrder, classId, subjectId, teacherId, academicPeriodId }
+ * @returns {Promise<Object>}
+ */
+const getScheduleList = async (request) => {
+    const { page = 1, limit = 20, search, sortBy = 'dayOfWeek', sortOrder = 'asc', classId, subjectId, teacherId, academicPeriodId } = request;
+    const skip = (page - 1) * limit;
+
+    // Build where clause with filters
+    const whereClause = {
+        isActive: true  // Only show active schedules
+    };
+
+    if (classId) whereClause.classId = classId;
+    if (subjectId) whereClause.subjectId = subjectId;
+    if (teacherId) whereClause.teacherId = teacherId;
+    if (academicPeriodId) whereClause.academicPeriodId = academicPeriodId;
+
+    // Add search functionality (search by class name, subject name, or teacher name)
+    if (search && search.trim().length > 0) {
+        whereClause.OR = [
+            {
+                class: {
+                    name: {
+                        contains: search
+                    }
+                }
+            },
+            {
+                subject: {
+                    name: {
+                        contains: search
+                    }
+                }
+            },
+            {
+                teacher: {
+                    fullName: {
+                        contains: search
+                    }
+                }
+            },
+            {
+                room: {
+                    contains: search
+                }
+            }
+        ];
+    }
+
+    // Get total count
+    const totalCount = await prismaClient.classSchedule.count({
+        where: whereClause
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Define order by based on sortBy parameter
+    let orderBy = {};
+    if (sortBy === 'class') {
+        orderBy = { class: { name: sortOrder } };
+    } else if (sortBy === 'subject') {
+        orderBy = { subject: { name: sortOrder } };
+    } else if (sortBy === 'teacher') {
+        orderBy = { teacher: { fullName: sortOrder } };
+    } else if (sortBy === 'startTime') {
+        orderBy = [
+            { dayOfWeek: 'asc' },
+            { startTime: sortOrder }
+        ];
+    } else {
+        orderBy = { [sortBy]: sortOrder };
+    }
+
+    // Fetch schedules with related data
+    const schedules = await prismaClient.classSchedule.findMany({
+        where: whereClause,
+        include: {
+            class: {
+                select: {
+                    id: true,
+                    name: true,
+                    gradeLevel: true
+                }
+            },
+            subject: {
+                select: {
+                    id: true,
+                    name: true,
+                    code: true
+                }
+            },
+            teacher: {
+                select: {
+                    id: true,
+                    fullName: true
+                }
+            },
+            academicPeriod: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            }
+        },
+        orderBy: orderBy,
+        skip: skip,
+        take: limit
+    });
+
+    // Format response
+    const formattedSchedules = schedules.map(schedule => ({
+        id: schedule.id,
+        class: {
+            id: schedule.class.id,
+            name: schedule.class.name,
+            gradeLevel: schedule.class.gradeLevel
+        },
+        subject: {
+            id: schedule.subject.id,
+            name: schedule.subject.name,
+            code: schedule.subject.code
+        },
+        teacher: {
+            id: schedule.teacher.id,
+            fullName: schedule.teacher.fullName
+        },
+        academicPeriod: {
+            id: schedule.academicPeriod.id,
+            name: schedule.academicPeriod.name
+        },
+        dayOfWeek: schedule.dayOfWeek,
+        dayName: getDayName(schedule.dayOfWeek),
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        room: schedule.room,
+        isActive: schedule.isActive,
+        createdAt: schedule.createdAt
+    }));
+
+    return {
+        schedules: formattedSchedules,
+        pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalCount: totalCount,
+            limit: limit,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1
+        }
+    };
+};
+
+/**
+ * Get single schedule by ID (Admin only)
+ * @param {number} scheduleId
+ * @returns {Promise<Object>}
+ */
+const getScheduleById = async (scheduleId) => {
+    const schedule = await prismaClient.classSchedule.findUnique({
+        where: { id: scheduleId },
+        include: {
+            class: {
+                select: {
+                    id: true,
+                    name: true,
+                    gradeLevel: true
+                }
+            },
+            subject: {
+                select: {
+                    id: true,
+                    name: true,
+                    code: true
+                }
+            },
+            teacher: {
+                select: {
+                    id: true,
+                    fullName: true
+                }
+            },
+            academicPeriod: {
+                select: {
+                    id: true,
+                    name: true,
+                    startDate: true,
+                    endDate: true
+                }
+            }
+        }
+    });
+
+    if (!schedule) {
+        throw new ResponseError(404, "Schedule not found");
+    }
+
+    return {
+        id: schedule.id,
+        class: {
+            id: schedule.class.id,
+            name: schedule.class.name,
+            gradeLevel: schedule.class.gradeLevel
+        },
+        subject: {
+            id: schedule.subject.id,
+            name: schedule.subject.name,
+            code: schedule.subject.code
+        },
+        teacher: {
+            id: schedule.teacher.id,
+            fullName: schedule.teacher.fullName
+        },
+        academicPeriod: {
+            id: schedule.academicPeriod.id,
+            name: schedule.academicPeriod.name,
+            startDate: schedule.academicPeriod.startDate,
+            endDate: schedule.academicPeriod.endDate
+        },
+        dayOfWeek: schedule.dayOfWeek,
+        dayName: getDayName(schedule.dayOfWeek),
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        room: schedule.room,
+        isActive: schedule.isActive,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt
+    };
+};
 
 /**
  * Get class schedule for a specific date
@@ -728,8 +966,8 @@ const createSchedule = async(request) => {
             subjectId,
             teacherId,
             dayOfWeek,
-            startTime,
-            endTime,
+            startTime: timeToDateTime(startTime),
+            endTime: timeToDateTime(endTime),
             room,
             academicPeriodId,
             isActive: true
@@ -797,9 +1035,18 @@ const updateSchedule = async(request) => {
         }
     }
 
+    // Convert time fields to ISO DateTime format for Prisma
+    const dataToUpdate = { ...updates };
+    if (dataToUpdate.startTime) {
+        dataToUpdate.startTime = timeToDateTime(dataToUpdate.startTime);
+    }
+    if (dataToUpdate.endTime) {
+        dataToUpdate.endTime = timeToDateTime(dataToUpdate.endTime);
+    }
+
     const updated = await prismaClient.classSchedule.update({
         where: { id: scheduleId },
-        data: updates,
+        data: dataToUpdate,
         include: {
             class: { select: { name: true, gradeLevel: true } },
             subject: { select: { name: true, code: true } },
@@ -908,6 +1155,8 @@ const bulkCreateSchedules = async(request) => {
             prismaClient.classSchedule.create({
                 data: {
                     ...schedule,
+                    startTime: timeToDateTime(schedule.startTime),
+                    endTime: timeToDateTime(schedule.endTime),
                     isActive: true
                 }
             })
@@ -922,6 +1171,8 @@ const bulkCreateSchedules = async(request) => {
 };
 
 export default {
+    getScheduleList,
+    getScheduleById,
     getScheduleByDate,
     getWeeklySchedule,
     getScheduleByAcademicPeriod,

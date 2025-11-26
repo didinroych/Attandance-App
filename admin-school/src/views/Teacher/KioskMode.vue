@@ -4,22 +4,22 @@
       <!-- Header -->
       <div class="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Classroom Attendance Kiosk</h1>
-          <p class="mt-1 text-sm text-gray-500">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white/90">Classroom Attendance Kiosk</h1>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Auto-verify student attendance using face recognition
           </p>
         </div>
       </div>
 
       <!-- Session Selection -->
-      <div class="rounded-lg bg-white p-6 shadow">
-        <label class="block text-sm font-medium text-gray-700">
+      <div class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Select Session
         </label>
         <select
           v-model="selectedSession"
           @change="handleSessionChange"
-          class="mt-2 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          class="mt-2 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         >
           <option :value="null">-- Select a session --</option>
           <option
@@ -33,19 +33,19 @@
       </div>
 
       <!-- Camera Selection -->
-      <div v-if="availableCameras.length > 0" class="rounded-lg bg-white p-6 shadow">
+      <div v-if="availableCameras.length > 0" class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="flex items-center gap-2 mb-2">
-          <svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="h-5 w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <label class="block text-sm font-medium text-gray-700">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Select Camera
           </label>
         </div>
         <select
           v-model="selectedCameraId"
           @change="handleCameraChange"
-          class="mt-2 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          class="mt-2 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         >
           <option
             v-for="camera in availableCameras"
@@ -55,14 +55,14 @@
             {{ camera.label }}
           </option>
         </select>
-        <p class="mt-1 text-xs text-gray-500">
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
           {{ availableCameras.length }} camera(s) detected
         </p>
       </div>
 
       <!-- Mode Selection -->
-      <div class="rounded-lg bg-white p-6 shadow">
-        <label class="block text-sm font-medium text-gray-700 mb-3">
+      <div class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
+        <label class="block text-sm font-medium text-gray-700 mb-3 dark:text-gray-300">
           Capture Mode
         </label>
         <div class="flex gap-4">
@@ -74,7 +74,7 @@
               :disabled="isCapturing"
               class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span class="ml-2 text-sm text-gray-700">Auto (Every 3 seconds)</span>
+            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Auto (Every 3 seconds)</span>
           </label>
           <label class="flex items-center">
             <input
@@ -84,13 +84,13 @@
               :disabled="isCapturing"
               class="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span class="ml-2 text-sm text-gray-700">Manual</span>
+            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Manual</span>
           </label>
         </div>
       </div>
 
       <!-- Control Buttons -->
-      <div class="rounded-lg bg-white p-6 shadow">
+      <div class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="flex gap-3">
           <!-- Start Auto Capture -->
           <button
@@ -146,12 +146,12 @@
       </div>
 
       <!-- Video Feed -->
-      <div class="rounded-lg bg-white p-6 shadow">
+      <div class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="relative">
           <video
             ref="videoRef"
             autoplay
-            class="w-full max-w-2xl mx-auto rounded-lg border-2 border-gray-300 bg-black"
+            class="w-full max-w-2xl mx-auto rounded-lg border-2 border-gray-300 bg-black dark:border-gray-700"
           />
           <canvas ref="canvasRef" class="hidden" />
         </div>
@@ -168,26 +168,26 @@
       </div>
 
       <!-- Recent Attendance -->
-      <div class="rounded-lg bg-white p-6 shadow">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Attendance</h3>
-        <div v-if="recentAttendance.length === 0" class="text-center text-gray-500 py-8">
+      <div class="rounded-lg bg-white p-6 shadow dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white/90">Recent Attendance</h3>
+        <div v-if="recentAttendance.length === 0" class="text-center text-gray-500 py-8 dark:text-gray-400">
           No attendance marked yet...
         </div>
         <ul v-else class="space-y-2">
           <li
             v-for="att in recentAttendance"
             :key="att.id"
-            class="flex items-center justify-between rounded-lg border-l-4 border-green-500 bg-green-50 p-4"
+            class="flex items-center justify-between rounded-lg border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-900/20 dark:border-green-600"
           >
             <div class="flex items-center gap-3">
-              <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
-              <span class="font-semibold text-gray-900">{{ att.name }}</span>
+              <span class="font-semibold text-gray-900 dark:text-white/90">{{ att.name }}</span>
             </div>
-            <div class="flex items-center gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <span>{{ att.time }}</span>
-              <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+              <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-300">
                 {{ (att.confidence * 100).toFixed(0) }}% confidence
               </span>
             </div>

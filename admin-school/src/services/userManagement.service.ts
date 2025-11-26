@@ -231,6 +231,13 @@ class UserManagementService {
   }
 
   /**
+   * Create a single user (student or teacher)
+   */
+  async createUser(userData: StudentFormData | TeacherFormData): Promise<void> {
+    await api.post('/admin/users', userData)
+  }
+
+  /**
    * Bulk create users from CSV data
    */
   async bulkCreateUsers(

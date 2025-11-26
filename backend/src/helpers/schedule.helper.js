@@ -1,8 +1,18 @@
 import { prismaClient } from "../application/database.js";
+
+/**
+ * Convert time string (HH:mm:ss) to ISO DateTime string for Prisma comparison
+ * @param {string} timeStr - Time in HH:mm:ss format
+ * @returns {string} ISO DateTime string
+ */
+const timeToDateTime = (timeStr) => {
+    return `1970-01-01T${timeStr}.000Z`;
+};
+
 /**
  * Check for time conflicts
  * Prevents scheduling conflicts for teachers, classes, and rooms
- * 
+ *
  * @param {Object} params - Schedule parameters
  * @returns {Object} { hasConflict: boolean, message: string }
  */
@@ -16,6 +26,10 @@ const checkTimeConflict = async(params) => {
         academicPeriodId,
         excludeScheduleId
     } = params;
+
+    // Convert time strings to DateTime format for Prisma comparison
+    const startDateTime = timeToDateTime(startTime);
+    const endDateTime = timeToDateTime(endTime);
 
     const whereClause = {
         dayOfWeek: dayOfWeek,
@@ -34,20 +48,20 @@ const checkTimeConflict = async(params) => {
             teacherId: teacherId,
             OR: [{
                     AND: [
-                        { startTime: { lte: startTime } },
-                        { endTime: { gt: startTime } }
+                        { startTime: { lte: startDateTime } },
+                        { endTime: { gt: startDateTime } }
                     ]
                 },
                 {
                     AND: [
-                        { startTime: { lt: endTime } },
-                        { endTime: { gte: endTime } }
+                        { startTime: { lt: endDateTime } },
+                        { endTime: { gte: endDateTime } }
                     ]
                 },
                 {
                     AND: [
-                        { startTime: { gte: startTime } },
-                        { endTime: { lte: endTime } }
+                        { startTime: { gte: startDateTime } },
+                        { endTime: { lte: endDateTime } }
                     ]
                 }
             ]
@@ -68,20 +82,20 @@ const checkTimeConflict = async(params) => {
             classId: classId,
             OR: [{
                     AND: [
-                        { startTime: { lte: startTime } },
-                        { endTime: { gt: startTime } }
+                        { startTime: { lte: startDateTime } },
+                        { endTime: { gt: startDateTime } }
                     ]
                 },
                 {
                     AND: [
-                        { startTime: { lt: endTime } },
-                        { endTime: { gte: endTime } }
+                        { startTime: { lt: endDateTime } },
+                        { endTime: { gte: endDateTime } }
                     ]
                 },
                 {
                     AND: [
-                        { startTime: { gte: startTime } },
-                        { endTime: { lte: endTime } }
+                        { startTime: { gte: startDateTime } },
+                        { endTime: { lte: endDateTime } }
                     ]
                 }
             ]
@@ -125,6 +139,7 @@ const mergeSchedulesWithSessions = (schedules, sessions) => {
 };
 
 export {
+    timeToDateTime,
     checkTimeConflict,
     mergeSchedulesWithSessions,
 };

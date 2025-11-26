@@ -7,16 +7,26 @@
           <h1 class="text-2xl font-bold text-gray-900">Student Management</h1>
           <p class="mt-1 text-sm text-gray-500">Manage student accounts and information</p>
         </div>
-        <div class="mt-4 sm:mt-0">
+        <div class="mt-4 sm:mt-0 flex gap-3">
           <button
             @click="openImportModal"
             type="button"
-            class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            class="inline-flex items-center gap-2.5 rounded-md border border-blue-600 bg-transparent px-4 py-2.5 text-center font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-900/20"
           >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            Import CSV
+            Bulk Upload CSV
+          </button>
+          <button
+            @click="openCreateModal"
+            type="button"
+            class="inline-flex items-center gap-2.5 rounded-md border border-blue-600 bg-blue-600 px-4 py-2.5 text-center font-medium text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-700"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Student
           </button>
         </div>
       </div>
@@ -269,6 +279,165 @@
         </template>
       </modal>
 
+      <!-- Create Student Modal -->
+      <modal
+        v-model="showCreateModal"
+        title="Create New Student"
+        size="lg"
+      >
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Username -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Username <span class="text-red-500">*</span></label>
+              <input
+                v-model="createForm.username"
+                type="text"
+                placeholder="e.g., john.doe"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <p v-if="createErrors.username" class="mt-1 text-xs text-red-600">{{ createErrors.username }}</p>
+            </div>
+
+            <!-- Email -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+              <input
+                v-model="createForm.email"
+                type="email"
+                placeholder="e.g., john.doe@example.com"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <p v-if="createErrors.email" class="mt-1 text-xs text-red-600">{{ createErrors.email }}</p>
+            </div>
+
+            <!-- Password -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Password <span class="text-red-500">*</span></label>
+              <input
+                v-model="createForm.password"
+                type="password"
+                placeholder="Minimum 6 characters"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <p v-if="createErrors.password" class="mt-1 text-xs text-red-600">{{ createErrors.password }}</p>
+            </div>
+
+            <!-- Student ID -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Student ID <span class="text-red-500">*</span></label>
+              <input
+                v-model="createForm.studentId"
+                type="text"
+                placeholder="e.g., STU001"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <p v-if="createErrors.studentId" class="mt-1 text-xs text-red-600">{{ createErrors.studentId }}</p>
+            </div>
+
+            <!-- Full Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+              <input
+                v-model="createForm.fullName"
+                type="text"
+                placeholder="e.g., John Doe"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+              <p v-if="createErrors.fullName" class="mt-1 text-xs text-red-600">{{ createErrors.fullName }}</p>
+            </div>
+
+            <!-- Class (Dropdown) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Class <span class="text-red-500">*</span></label>
+              <select
+                v-model.number="createForm.classId"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              >
+                <option value="">Select a class</option>
+                <option v-for="cls in classes" :key="cls.id" :value="cls.id">
+                  {{ cls.name }} (Grade {{ cls.gradeLevel }})
+                </option>
+              </select>
+              <p v-if="createErrors.classId" class="mt-1 text-xs text-red-600">{{ createErrors.classId }}</p>
+            </div>
+
+            <!-- Phone (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Phone</label>
+              <input
+                v-model="createForm.phone"
+                type="tel"
+                placeholder="e.g., +62812345678"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <!-- Parent Phone (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Parent Phone</label>
+              <input
+                v-model="createForm.parentPhone"
+                type="tel"
+                placeholder="e.g., +62812345678"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <!-- Date of Birth (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+              <input
+                v-model="createForm.dateOfBirth"
+                type="date"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <!-- Enrollment Date (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Enrollment Date</label>
+              <input
+                v-model="createForm.enrollmentDate"
+                type="date"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              />
+            </div>
+
+            <!-- Address (Optional, Full Width) -->
+            <div class="col-span-2">
+              <label class="block text-sm font-medium text-gray-700">Address</label>
+              <textarea
+                v-model="createForm.address"
+                rows="2"
+                placeholder="Student's residential address"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex gap-3">
+            <button
+              @click="submitCreateForm"
+              :disabled="creating"
+              type="button"
+              class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ creating ? 'Creating...' : 'Create Student' }}
+            </button>
+            <button
+              @click="closeCreateModal"
+              type="button"
+              class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </template>
+      </modal>
+
       <!-- Import CSV Modal -->
       <modal
         v-model="showImportModal"
@@ -278,25 +447,88 @@
         <div class="space-y-4">
           <!-- Step 1: Upload CSV -->
           <div v-if="importStep === 'upload'">
-            <csv-uploader
-              ref="csvUploaderRef"
-              @file-selected="handleFileSelected"
-            >
-              <template #instructions>
-                <p class="mb-2">Your CSV file should include the following columns:</p>
-                <ul class="list-inside list-disc space-y-1">
-                  <li><strong>Required:</strong> username, email, password, studentId, fullName, classId</li>
-                  <li><strong>Optional:</strong> phone, address, dateOfBirth, parentPhone, enrollmentDate</li>
-                </ul>
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              Upload a CSV file to create multiple student accounts at once.
+            </p>
+
+            <div class="mb-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+              <p class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Required columns:</p>
+              <code class="text-xs text-gray-800 dark:text-gray-200">
+                username, email, password, studentId, fullName, classId
+              </code>
+              <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">Optional columns:</p>
+              <code class="text-xs text-gray-800 dark:text-gray-200">
+                phone, address, dateOfBirth (YYYY-MM-DD), parentPhone, enrollmentDate (YYYY-MM-DD)
+              </code>
+              <button
+                @click="downloadTemplate"
+                type="button"
+                class="mt-3 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              >
+                Download CSV Template
+              </button>
+            </div>
+
+            <!-- File Upload -->
+            <div class="space-y-3">
+              <input
+                ref="csvFileInput"
+                type="file"
+                accept=".csv"
+                @change="handleCsvFileSelected"
+                class="hidden"
+              />
+              <button
+                @click="csvFileInput?.click()"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Choose CSV File
+              </button>
+              <div v-if="csvFile" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ csvFile.name }}</span>
                 <button
-                  @click="downloadTemplate"
+                  @click="csvFile = null; if (csvFileInput) csvFileInput.value = ''"
                   type="button"
-                  class="mt-3 text-sm font-medium text-blue-600 hover:text-blue-500"
+                  class="text-red-600 hover:text-red-700"
                 >
-                  Download CSV Template
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              </template>
-            </csv-uploader>
+              </div>
+            </div>
+
+            <!-- Error Display -->
+            <div v-if="csvError" class="mt-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                  <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                    {{ csvError }}
+                  </h3>
+                  <div v-if="csvValidationErrors.length > 0" class="mt-2 text-sm text-red-700 dark:text-red-300">
+                    <div class="max-h-60 overflow-y-auto">
+                      <ul class="list-inside list-disc space-y-1">
+                        <li v-for="(error, index) in csvValidationErrors" :key="index" class="text-xs">
+                          {{ error }}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Step 2: Preview Data -->
@@ -401,6 +633,15 @@
           <div class="flex gap-3">
             <button
               v-if="importStep === 'upload'"
+              @click="processCsvFile"
+              :disabled="!csvFile || processingCsv"
+              type="button"
+              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {{ processingCsv ? 'Processing...' : 'Preview' }}
+            </button>
+            <button
+              v-if="importStep === 'upload'"
               @click="closeImportModal"
               type="button"
               class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -454,14 +695,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import Papa from 'papaparse'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import Modal from '@/components/common/Modal.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-import CSVUploader from '@/components/common/CSVUploader.vue'
 import { useUserManagement } from '@/composables/useUserManagement'
-import { parseStudentCSV, generateStudentCSVTemplate, downloadCSVTemplate } from '@/utils/csvParser'
+import { generateStudentCSVTemplate, downloadCSVTemplate } from '@/utils/csvParser'
+import classService from '@/services/class.service'
 import type { Student, StudentFormData, ParsedCSVData, BulkCreateResult } from '@/types/user'
+import type { Class } from '@/types/class'
 import type { TableColumn } from '@/components/common/DataTable.vue'
 
 // Composable
@@ -478,7 +721,10 @@ const {
   handleSortChange,
   handleSearch,
   clearSearch: clearSearchQuery,
-  deleteUser
+  deleteUser,
+  createUser,
+  bulkCreateUsers,
+  updateUser
 } = useUserManagement<Student>('student')
 
 // Table columns
@@ -617,6 +863,126 @@ const confirmDelete = async () => {
   }
 }
 
+// Create Modal
+const showCreateModal = ref(false)
+const creating = ref(false)
+const createErrors = ref<Partial<Record<keyof StudentFormData, string>>>({})
+const createForm = ref<StudentFormData>({
+  username: '',
+  email: '',
+  password: '',
+  role: 'student',
+  studentId: '',
+  fullName: '',
+  classId: 0,
+  phone: '',
+  address: '',
+  dateOfBirth: '',
+  parentPhone: '',
+  enrollmentDate: ''
+})
+
+const validateCreateForm = (): boolean => {
+  createErrors.value = {}
+  let isValid = true
+
+  // Username validation
+  if (!createForm.value.username || createForm.value.username.length < 3) {
+    createErrors.value.username = 'Username must be at least 3 characters'
+    isValid = false
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!createForm.value.email || !emailRegex.test(createForm.value.email)) {
+    createErrors.value.email = 'Please enter a valid email'
+    isValid = false
+  }
+
+  // Password validation
+  if (!createForm.value.password || createForm.value.password.length < 6) {
+    createErrors.value.password = 'Password must be at least 6 characters'
+    isValid = false
+  }
+
+  // Student ID validation
+  if (!createForm.value.studentId) {
+    createErrors.value.studentId = 'Student ID is required'
+    isValid = false
+  }
+
+  // Full Name validation
+  if (!createForm.value.fullName) {
+    createErrors.value.fullName = 'Full Name is required'
+    isValid = false
+  }
+
+  // Class validation
+  if (!createForm.value.classId || createForm.value.classId === 0) {
+    createErrors.value.classId = 'Class is required'
+    isValid = false
+  }
+
+  return isValid
+}
+
+const openCreateModal = async () => {
+  // Load classes if not already loaded
+  if (classes.value.length === 0) {
+    await loadClasses()
+  }
+
+  resetCreateForm()
+  showCreateModal.value = true
+}
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+  resetCreateForm()
+}
+
+const resetCreateForm = () => {
+  createForm.value = {
+    username: '',
+    email: '',
+    password: '',
+    role: 'student',
+    studentId: '',
+    fullName: '',
+    classId: 0,
+    phone: '',
+    address: '',
+    dateOfBirth: '',
+    parentPhone: '',
+    enrollmentDate: ''
+  }
+  createErrors.value = {}
+}
+
+const submitCreateForm = async () => {
+  if (!validateCreateForm()) {
+    return
+  }
+
+  creating.value = true
+  try {
+    const success = await createUser(createForm.value)
+
+    if (success) {
+      showCreateModal.value = false
+      resetCreateForm()
+    } else {
+      // Error message already set in error ref from composable
+      createErrors.value.email = error.value || 'Failed to create student'
+    }
+  } catch (err) {
+    console.error('Error creating student:', err)
+    createErrors.value.email = 'An error occurred while creating the student'
+  } finally {
+    creating.value = false
+  }
+}
+
 // CSV Import
 const showImportModal = ref(false)
 const importStep = ref<'upload' | 'preview' | 'results'>('upload')
@@ -627,13 +993,35 @@ const parsedData = ref<ParsedCSVData<StudentFormData>>({
 })
 const importResults = ref<BulkCreateResult | null>(null)
 const importing = ref(false)
-const csvUploaderRef = ref<InstanceType<typeof CSVUploader> | null>(null)
+const csvFileInput = ref<HTMLInputElement | null>(null)
+const csvFile = ref<File | null>(null)
+const csvError = ref<string | null>(null)
+const csvValidationErrors = ref<string[]>([])
+const processingCsv = ref(false)
+const classes = ref<Class[]>([])
 
-const openImportModal = () => {
+const loadClasses = async () => {
+  try {
+    const result = await classService.getClasses({ limit: 100, sortBy: 'name', sortOrder: 'asc' })
+    classes.value = result.classes
+  } catch (err) {
+    console.error('Failed to load classes:', err)
+  }
+}
+
+const openImportModal = async () => {
+  // Load classes if not already loaded
+  if (classes.value.length === 0) {
+    await loadClasses()
+  }
+
   showImportModal.value = true
   importStep.value = 'upload'
   parsedData.value = { data: [], errors: [], isValid: false }
   importResults.value = null
+  csvFile.value = null
+  csvError.value = null
+  csvValidationErrors.value = []
 }
 
 const closeImportModal = () => {
@@ -641,16 +1029,183 @@ const closeImportModal = () => {
   importStep.value = 'upload'
   parsedData.value = { data: [], errors: [], isValid: false }
   importResults.value = null
-  csvUploaderRef.value?.removeFile()
+  csvFile.value = null
+  csvError.value = null
+  csvValidationErrors.value = []
 }
 
-const handleFileSelected = async (file: File) => {
+const handleCsvFileSelected = (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file) {
+    csvFile.value = file
+    csvError.value = null
+    csvValidationErrors.value = []
+  }
+}
+
+const processCsvFile = async () => {
+  if (!csvFile.value) return
+
+  processingCsv.value = true
+  csvError.value = null
+  csvValidationErrors.value = []
+
   try {
-    const result = await parseStudentCSV(file)
-    parsedData.value = result
-    importStep.value = 'preview'
+    // Ensure classes are loaded
+    if (classes.value.length === 0) {
+      await loadClasses()
+    }
+
+    // Parse CSV file
+    Papa.parse(csvFile.value, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
+      complete: (results) => {
+        const validationErrors: string[] = []
+        const data: StudentFormData[] = []
+
+        // Required fields
+        const requiredFields = ['username', 'email', 'password', 'studentId', 'fullName', 'classId']
+
+        // Validate headers
+        const headers = results.meta.fields || []
+        const missingHeaders = requiredFields.filter(f => !headers.includes(f))
+
+        if (missingHeaders.length > 0) {
+          csvError.value = `Missing required columns: ${missingHeaders.join(', ')}`
+          csvValidationErrors.value = [
+            'Required CSV format:',
+            'username, email, password, studentId, fullName, classId, phone, address, dateOfBirth, parentPhone, enrollmentDate',
+            '',
+            `Missing: ${missingHeaders.join(', ')}`
+          ]
+          processingCsv.value = false
+          return
+        }
+
+        if (results.data.length === 0) {
+          csvError.value = 'CSV file has no data rows'
+          processingCsv.value = false
+          return
+        }
+
+        // Validate each row
+        results.data.forEach((row: any, index: number) => {
+          const rowNumber = index + 2
+          const errors: string[] = []
+
+          // Validate username
+          if (!row.username || row.username.trim() === '') {
+            errors.push('username is required')
+          }
+
+          // Validate email
+          if (!row.email || row.email.trim() === '') {
+            errors.push('email is required')
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+            errors.push(`email "${row.email}" has invalid format`)
+          }
+
+          // Validate password
+          if (!row.password || row.password.trim() === '') {
+            errors.push('password is required')
+          }
+
+          // Validate studentId
+          if (!row.studentId || row.studentId.trim() === '') {
+            errors.push('studentId is required')
+          }
+
+          // Validate fullName
+          if (!row.fullName || row.fullName.trim() === '') {
+            errors.push('fullName is required')
+          }
+
+          // Validate classId
+          if (!row.classId || row.classId === '') {
+            errors.push('classId is required')
+          } else if (isNaN(parseInt(row.classId))) {
+            errors.push(`classId "${row.classId}" is not a valid number`)
+          } else {
+            const classId = parseInt(row.classId)
+            const classExists = classes.value.find(c => c.id === classId)
+            if (!classExists) {
+              errors.push(`classId ${classId} does not exist. Available class IDs: ${classes.value.map(c => c.id).join(', ')}`)
+            }
+          }
+
+          // Validate optional date fields
+          if (row.dateOfBirth && row.dateOfBirth.trim() !== '') {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(row.dateOfBirth)) {
+              errors.push(`dateOfBirth "${row.dateOfBirth}" has invalid format. Expected YYYY-MM-DD`)
+            }
+          }
+
+          if (row.enrollmentDate && row.enrollmentDate.trim() !== '') {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(row.enrollmentDate)) {
+              errors.push(`enrollmentDate "${row.enrollmentDate}" has invalid format. Expected YYYY-MM-DD`)
+            }
+          }
+
+          // Validate phone numbers
+          if (row.phone && row.phone.trim() !== '' && !/^[0-9+\s()-]{8,20}$/.test(row.phone)) {
+            errors.push(`phone "${row.phone}" has invalid format`)
+          }
+
+          if (row.parentPhone && row.parentPhone.trim() !== '' && !/^[0-9+\s()-]{8,20}$/.test(row.parentPhone)) {
+            errors.push(`parentPhone "${row.parentPhone}" has invalid format`)
+          }
+
+          // Add errors to validation list
+          if (errors.length > 0) {
+            validationErrors.push(`Row ${rowNumber}: ${errors.join('; ')}`)
+          } else {
+            // Add to data if valid
+            data.push({
+              username: row.username.trim(),
+              email: row.email.trim(),
+              password: row.password.trim(),
+              role: 'student',
+              studentId: row.studentId.trim(),
+              fullName: row.fullName.trim(),
+              classId: parseInt(row.classId),
+              phone: row.phone?.trim() || undefined,
+              address: row.address?.trim() || undefined,
+              dateOfBirth: row.dateOfBirth?.trim() || undefined,
+              parentPhone: row.parentPhone?.trim() || undefined,
+              enrollmentDate: row.enrollmentDate?.trim() || undefined
+            })
+          }
+        })
+
+        csvValidationErrors.value = validationErrors
+
+        if (validationErrors.length > 0) {
+          csvError.value = `Found ${validationErrors.length} validation error(s). Please fix the issues and try again.`
+          processingCsv.value = false
+          return
+        }
+
+        // Success - move to preview
+        parsedData.value = {
+          data,
+          errors: [],
+          isValid: true
+        }
+        importStep.value = 'preview'
+        processingCsv.value = false
+      },
+      error: (error) => {
+        csvError.value = 'Failed to parse CSV file: ' + error.message
+        csvValidationErrors.value = ['Make sure the file is a valid CSV format with comma-separated values']
+        processingCsv.value = false
+      }
+    })
   } catch (err: any) {
-    error.value = err.message
+    csvError.value = 'Failed to parse CSV file: ' + err.message
+    csvValidationErrors.value = ['Make sure the file is a valid CSV format with comma-separated values']
+    processingCsv.value = false
   }
 }
 

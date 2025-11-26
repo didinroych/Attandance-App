@@ -100,19 +100,26 @@ export function createAuth() {
   }
 
   // Logout
-  const logout = async () => { 
-    try { 
-      await authService.logout() 
+  const logout = async () => {
+    try {
+      await authService.logout()
     } catch (error) {
       console.error('🔴 [useAuth] Error in logout:', error)
     } finally {
       // Always clear local state and redirect, even if API call fails
       console.log('🔴 [useAuth] Clearing auth state')
+
+      // Clear local storage FIRST
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+
+      // Clear state
       user.value = null
       token.value = null
-      isAuthenticated.value = false 
-      // Use window.location for a hard redirect to ensure clean state
-      window.location.href = '/signin'
+      isAuthenticated.value = false
+
+      // Use absolute URL for redirect to prevent routing issues
+      window.location.href = window.location.origin + '/signin'
     }
   }
 

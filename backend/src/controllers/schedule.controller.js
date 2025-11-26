@@ -1,6 +1,60 @@
 import { ResponseError } from "../error/response-error.js";
 import scheduleService from "../services/schedule.service.js";
 
+// GET /api/admin/schedules
+// Get list of schedules with pagination and filters
+const getScheduleListController = async(req, res, next) => {
+    try {
+        if (req.user.role !== "admin") {
+            throw new ResponseError(403, "Only admins can view schedule list");
+        }
+
+        const request = {
+            page: req.query.page ? parseInt(req.query.page) : 1,
+            limit: req.query.limit ? parseInt(req.query.limit) : 20,
+            search: req.query.search,
+            sortBy: req.query.sortBy || 'dayOfWeek',
+            sortOrder: req.query.sortOrder || 'asc',
+            classId: req.query.classId ? parseInt(req.query.classId) : undefined,
+            subjectId: req.query.subjectId ? parseInt(req.query.subjectId) : undefined,
+            teacherId: req.query.teacherId ? parseInt(req.query.teacherId) : undefined,
+            academicPeriodId: req.query.academicPeriodId ? parseInt(req.query.academicPeriodId) : undefined
+        };
+
+        const result = await scheduleService.getScheduleList(request);
+
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
+// GET /api/admin/schedules/:id
+// Get single schedule by ID with details
+const getScheduleByIdController = async(req, res, next) => {
+    try {
+        if (req.user.role !== "admin") {
+            throw new ResponseError(403, "Only admins can view schedule details");
+        }
+
+        const scheduleId = parseInt(req.params.id);
+
+        if (isNaN(scheduleId)) {
+            throw new ResponseError(400, "Invalid schedule ID");
+        }
+
+        const result = await scheduleService.getScheduleById(scheduleId);
+
+        res.status(200).json({
+            data: result
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
 // GET /api/users/schedule/date?date=YYYY-MM-DD
 const getScheduleByDateController = async(req, res, next) => {
     try {
@@ -200,6 +254,8 @@ const bulkCreateSchedulesController = async(req, res, next) => {
     }
 };
 export default {
+    getScheduleListController,
+    getScheduleByIdController,
     getScheduleByDateController,
     getWeeklyScheduleController,
     getScheduleByAcademicPeriodController,
