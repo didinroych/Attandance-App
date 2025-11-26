@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:mobile/providers/auth_provider.dart';
+import 'package:mobile/providers/auth_providers.dart';
 import 'package:mobile/widgets/custom_button.dart';
 import 'package:mobile/widgets/custom_textfield.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -131,9 +131,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                 const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Sudah punya akun? Login'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Sudah punya akun?'),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Login'),
+                    ),
+                  ],
                 ),
               ],
             ),

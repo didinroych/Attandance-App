@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:mobile/providers/auth_provider.dart';
-import 'package:mobile/screens/auth/register_screen.dart';
+import 'package:mobile/providers/auth_providers.dart';
+import 'package:mobile/screen/auth/register_screen.dart';
 import 'package:mobile/widgets/custom_button.dart';
 import 'package:mobile/widgets/custom_textfield.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -61,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // -------------------------------------
                 Text(
                   'Selamat Datang',
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -105,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                 CustomButton(
-                  text: 'Login',
+                  text: 'Masuk',
                   isLoading: _isLoading,
                   onPressed: _submit,
                 ),
