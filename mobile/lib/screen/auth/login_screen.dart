@@ -1,9 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:mobile/screen/auth/forgot_password_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:mobile/providers/auth_providers.dart';
-import 'package:mobile/screen/auth/register_screen.dart';
+// Ganti import register dengan forgot password
 import 'package:mobile/widgets/custom_button.dart';
 import 'package:mobile/widgets/custom_textfield.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   Future<void> _submit() async {
+    // ... (Logika submit login tidak berubah, biarkan sama)
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -45,6 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -54,22 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.school,
-                  size: 80,
-                  color: Theme.of(context).primaryColor,
-                ),
+                Icon(Icons.school, size: 80, color: theme.primaryColor),
                 const SizedBox(height: 24),
-
-                Text(
-                  'Selamat Datang',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
+                Text('Selamat Datang', style: theme.textTheme.headlineLarge),
                 const SizedBox(height: 8),
-                Text(
-                  'Login ke Akun Anda',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('Login ke Akun Anda', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 40),
 
                 CustomTextField(
@@ -89,6 +82,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: (value) =>
                       value!.isEmpty ? 'Password tidak boleh kosong' : null,
                 ),
+
+                // --- PERUBAHAN DI SINI: LUPA PASSWORD ---
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Lupa Kata Sandi?'),
+                  ),
+                ),
+
+                // ----------------------------------------
                 const SizedBox(height: 24),
 
                 if (_errorMessage != null)
@@ -96,36 +106,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                      style: TextStyle(color: theme.colorScheme.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
 
                 CustomButton(
-                  text: 'Masuk',
+                  text: 'Login',
                   isLoading: _isLoading,
                   onPressed: _submit,
                 ),
-                const SizedBox(height: 16),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Belum punya akun?'),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('Daftar di sini'),
-                    ),
-                  ],
-                ),
+                // --- PERUBAHAN: TOMBOL DAFTAR DIHAPUS ---
+                // Karena pendaftaran dikelola admin, bagian ini dihapus.
               ],
             ),
           ),

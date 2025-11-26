@@ -1,7 +1,7 @@
-import 'package:mobile/providers/auth_providers.dart';
-import 'package:mobile/screen/tabs/attendance_form_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile/screen/teacher/attendance_form_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:mobile/providers/auth_providers.dart';
 import 'package:intl/intl.dart';
 
 class ManageAttendanceTab extends StatefulWidget {
@@ -12,9 +12,6 @@ class ManageAttendanceTab extends StatefulWidget {
 }
 
 class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
-  // Kita tidak lagi menyimpan Future sebagai state di sini,
-  // karena Consumer akan menyediakannya.
-
   // Helper format
   String _formatTime(String isoTime) {
     try {
@@ -34,7 +31,6 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
 
   /// Navigasi ke Form Absensi
   Future<void> _navigateToSession(BuildContext context, int sessionId) async {
-    // Ambil AuthProvider (listen: false) karena kita di dalam fungsi
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     // Tampilkan loading dialog
@@ -45,23 +41,19 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
     );
 
     try {
-      // 1. Panggil API untuk mendapatkan detail (termasuk daftar siswa)
       final sessionData = await auth.getSessionDetails(sessionId);
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Tutup loading dialog
 
-      // 2. Await navigasi. Ini penting.
-      // Kode di bawah ini akan berjalan SETELAH layar form ditutup
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => AttendanceFormScreen(sessionData: sessionData),
         ),
       );
 
-      // 3. Setelah kembali, refresh semua data
-      auth.triggerRefresh(); // Beri tahu HomeTab (dan Consumer ini)
-      setState(() {}); // Paksa Consumer untuk rebuild dan panggil API lagi
+      auth.triggerRefresh();
+      setState(() {});
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Tutup loading dialog
@@ -78,20 +70,16 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kelola Absen')),
-      // Gunakan Consumer untuk mendengarkan "lonceng" triggerRefresh()
       body: Consumer<AuthProvider>(
         builder: (context, auth, child) {
-          // Setiap Consumer rebuild (karena triggerRefresh),
-          // kita panggil API untuk mendapatkan Future baru.
+          // Ambil Future baru setiap kali refresh
           final activeSessionsFuture = auth.getActiveSessions();
 
           return RefreshIndicator(
             onRefresh: () async {
-              // Manual pull-to-refresh juga memicu setState
               setState(() {});
             },
             child: FutureBuilder<Map<String, dynamic>>(
-              // Gunakan Future baru dari Consumer
               future: activeSessionsFuture,
               builder: (context, snapshot) {
                 // --- Loading State ---
@@ -117,9 +105,34 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
                   return const Center(child: Text('Tidak ada sesi aktif.'));
                 }
 
-                final List<dynamic> sessions = snapshot.data!['data'];
+                // Ambil list data mentah
+                final List<dynamic> rawSessions = snapshot.data!['data'];
+
+                // --- FILTER: HANYA TAMPILKAN 'ongoing' ---
+                final List<dynamic> sessions = rawSessions.where((s) {
+                  final status = s['status']?.toString().toLowerCase() ?? '';
+                  return status == 'ongoing';
+                }).toList();
+                // ----------------------------------------
+
                 if (sessions.isEmpty) {
-                  return const Center(child: Text('Tidak ada sesi aktif.'));
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.event_available_outlined,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Tidak ada sesi yang sedang berlangsung.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 // --- Success State ---
@@ -161,14 +174,11 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
+              // Indikator visual untuk sesi aktif (Hijau berkedip/biasa)
               CircleAvatar(
                 radius: 22,
-                backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
-                child: Icon(
-                  Icons.class_outlined,
-                  color: theme.primaryColor,
-                  size: 24,
-                ),
+                backgroundColor: Colors.green.withValues(alpha: 0.1),
+                child: const Icon(Icons.sensors, color: Colors.green, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -187,9 +197,36 @@ class _ManageAttendanceTabState extends State<ManageAttendanceTab> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '$date ($startTime - $endTime)',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    Row(
+                      children: [
+                        Text(
+                          '$date ($startTime - $endTime)',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Badge Status Kecil
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'AKTIF',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

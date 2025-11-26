@@ -65,3 +65,4 @@ android/app/release/
 *.log
 **/.DS_Store
 EOF
+.DS_Store
