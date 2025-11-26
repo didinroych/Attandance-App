@@ -259,6 +259,44 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  /// 1. Request OTP (POST /api/auth/request-reset-password)
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/request-reset-password'),
+      headers: _getHeaders(null), // Tidak butuh token
+      body: jsonEncode({'email': email}),
+    );
+    return _handleResponse(response);
+  }
+
+  /// 2. Verify OTP (POST /api/auth/verify-otp)
+  Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/verify-otp'),
+      headers: _getHeaders(null),
+      body: jsonEncode({'email': email, 'otp': otp}),
+    );
+    return _handleResponse(response);
+  }
+
+  /// 3. Reset Password (POST /api/auth/reset-password)
+  Future<Map<String, dynamic>> resetPassword(
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/reset-password'),
+      headers: _getHeaders(null),
+      body: jsonEncode({
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      }),
+    );
+    return _handleResponse(response);
+  }
+
   // Helper untuk memproses response
   Map<String, dynamic> _handleResponse(http.Response response) {
     final body = jsonDecode(response.body);

@@ -340,6 +340,34 @@ class AuthProvider extends ChangeNotifier {
     return response; // Kembalikan response sukses (biasanya berisi pesan sukses/detail)
   }
 
+  Future<void> requestResetPassword(String email) async {
+    try {
+      await _apiService.requestPasswordReset(email);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> verifyOtp(String email, String otp) async {
+    try {
+      await _apiService.verifyOtp(email, otp);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> resetPassword(
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    try {
+      await _apiService.resetPassword(email, otp, newPassword);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> getWeeklySchedule() async {
     if (!isUserApproved) {
       throw ApiException('Tunggu approval dari admin');
