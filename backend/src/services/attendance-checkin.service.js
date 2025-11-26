@@ -135,19 +135,23 @@ const studentCheckIn = async(request) => {
         };
     }
 
-    // Check if student has already checked in
+    // Check if student has already checked in (status is not absent)
     if (session.attendances && session.attendances.length > 0) {
         const existingAttendance = session.attendances[0];
-        return {
-            success: false,
-            message: 'You have already checked in for this session',
-            alreadyCheckedIn: true,
-            attendance: {
-                id: existingAttendance.id,
-                status: existingAttendance.status,
-                checkInTime: existingAttendance.checkInTime
-            }
-        };
+
+        // Only consider it "already checked in" if status is not absent
+        if (existingAttendance.status !== 'absent') {
+            return {
+                success: false,
+                message: 'You have already checked in for this session',
+                alreadyCheckedIn: true,
+                attendance: {
+                    id: existingAttendance.id,
+                    status: existingAttendance.status,
+                    checkInTime: existingAttendance.checkInTime
+                }
+            };
+        }
     }
 
     // Determine attendance status (present or late)
