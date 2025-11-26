@@ -1,7 +1,6 @@
+import 'package:mobile/providers/auth_providers.dart';
+import 'package:mobile/screen/tabs/history_tab.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/providers/auth_provider.dart';
-import 'package:mobile/screens/tabs/history_tab.dart';
-
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -15,37 +14,48 @@ class ScheduleTab extends StatefulWidget {
 class _ScheduleTabState extends State<ScheduleTab> {
   late Future<Map<String, dynamic>> _scheduleFuture;
 
+  // State untuk UI
   late DateTime _today;
   late List<DateTime> _weekDays;
-  late int _selectedDay;
+  late int _selectedDay; // 1=Senin, 7=Minggu
 
   @override
   void initState() {
     super.initState();
+    // Inisialisasi state tanggal
     _today = DateTime.now();
     _weekDays = _generateWeekDays(_today);
+    // Set hari yang dipilih default ke hari ini
     _selectedDay = _today.weekday;
 
+    // Panggil API
     _scheduleFuture = Provider.of<AuthProvider>(
       context,
       listen: false,
     ).getWeeklySchedule();
   }
 
+  // --- HELPER UNTUK LOGIKA TANGGAL ---
+
+  // Membuat daftar 7 hari (Senin-Minggu) untuk minggu ini
   List<DateTime> _generateWeekDays(DateTime today) {
+    // Cari hari Senin di minggu ini
     DateTime startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+    // Buat daftar 7 hari
     return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
   }
 
+  // Helper untuk format waktu (HH:mm)
   String _formatTime(String isoTime) {
     try {
       final dateTime = DateTime.parse(isoTime);
-      return DateFormat.Hm().format(dateTime.toLocal());
+      return DateFormat.Hm().format(dateTime.toLocal()); // Format "12:30"
     } catch (e) {
       return 'N/A';
     }
   }
 
+  // Helper untuk nama hari (Senin, Selasa, ...)
   String _getDayName(int day) {
     const days = [
       'Senin',
@@ -59,6 +69,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
     return (day >= 1 && day <= 7) ? days[day - 1] : 'Error';
   }
 
+  // Helper untuk nama bulan (Januari, Februari, ...)
   String _getMonthName(int month) {
     const months = [
       'Januari',
@@ -77,8 +88,13 @@ class _ScheduleTabState extends State<ScheduleTab> {
     return (month >= 1 && month <= 12) ? months[month - 1] : 'Error';
   }
 
+  // --- WIDGET BUILDER ---
+
+  // AppBar sesuai permintaan
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
+      // Hanya tampilkan tombol back jika layar ini dibuka dari layar lain (push)
+      // Jika ini adalah tab utama, tombol back tidak akan muncul
       leading: Navigator.canPop(context) ? const BackButton() : null,
       title: const Text('Jadwal & Presensi'),
       actions: [
@@ -86,6 +102,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
           icon: const Icon(Icons.history),
           tooltip: 'Riwayat Presensi',
           onPressed: () {
+            // Navigasi ke Halaman History
             Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (context) => const HistoryTab()));
@@ -95,6 +112,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
     );
   }
 
+  // Tampilan {Bulan} {Tahun}
   Widget _buildMonthYearTitle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -107,6 +125,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
     );
   }
 
+  // Scroller hari horizontal (Senin - Minggu)
   Widget _buildDayScroller() {
     return Container(
       height: 85,
@@ -128,6 +147,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
 
           return GestureDetector(
             onTap: () {
+              // Ganti hari yang dipilih
               setState(() {
                 _selectedDay = date.weekday;
               });
@@ -184,6 +204,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
     );
   }
 
+  // Tampilan info hari yang dipilih (e.g., "Rabu", "22 Oktober")
   Widget _buildSelectedDayInfo(DateTime selectedDate) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
@@ -207,9 +228,10 @@ class _ScheduleTabState extends State<ScheduleTab> {
     );
   }
 
+  // Card untuk setiap jadwal pelajaran
   Widget _buildScheduleCard(Map<String, dynamic> scheduleItem) {
     final theme = Theme.of(context);
-    final subject = scheduleItem['subject']?['name'] ?? 'Mata Pelajaran';
+    final subject = scheduleItem['subjectName'] ?? 'Mata Pelajaran';
     final room = scheduleItem['room'] ?? '-';
     final startTime = _formatTime(scheduleItem['startTime'] ?? '');
     final endTime = _formatTime(scheduleItem['endTime'] ?? '');
@@ -217,11 +239,13 @@ class _ScheduleTabState extends State<ScheduleTab> {
     return Card(
       color: Theme.of(context).primaryColor,
 
+      // CardTheme dari app_theme.dart akan diterapkan
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Kiri: Info Pelajaran & Ruang
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,26 +290,13 @@ class _ScheduleTabState extends State<ScheduleTab> {
                 ],
               ),
             ),
-            // Kanan: Info Waktu
-            // Column(
-            //   crossAxisAlignment: CrossAxisAlignment.end,
-            //   children: [
-            //     Text(
-            //       "$startTime - $endTime",
-            //       style: theme.textTheme.titleMedium?.copyWith(
-            //         color: theme.primaryColor,
-            //         fontWeight: FontWeight.bold,
-            //       ),
-            //     ),
-            //     // Nanti bisa ditambahkan status presensi di sini
-            //     // const Text("Belum absen", style: TextStyle(color: Colors.grey)),
-            //   ],
-            // ),
           ],
         ),
       ),
     );
   }
+
+  // --- BUILD UTAMA ---
 
   @override
   Widget build(BuildContext context) {
@@ -294,15 +305,19 @@ class _ScheduleTabState extends State<ScheduleTab> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _scheduleFuture,
         builder: (context, snapshot) {
+          // --- Loading State ---
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          // --- Error State ---
           if (snapshot.hasError) {
             String errorMessage = snapshot.error.toString();
+            // Hapus "Exception: " atau "ApiException: " dari pesan
             errorMessage = errorMessage.replaceAll("Exception: ", "");
             errorMessage = errorMessage.replaceAll("ApiException: ", "");
 
             if (errorMessage.contains('Tunggu approval')) {
+              // Tampilkan UI khusus untuk "Tunggu Approval"
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
@@ -316,7 +331,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        errorMessage,
+                        errorMessage, // "Tunggu approval dari admin"
                         style: Theme.of(context).textTheme.titleLarge,
                         textAlign: TextAlign.center,
                       ),
@@ -333,20 +348,40 @@ class _ScheduleTabState extends State<ScheduleTab> {
                 ),
               );
             }
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      errorMessage, // Tampilkan pesan errornya
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
-
+          // --- Empty Data State ---
           if (!snapshot.hasData || snapshot.data!['data'] == null) {
             return const Center(child: Text('Tidak ada data jadwal.'));
           }
 
+          // --- Success State ---
           final responseData = snapshot.data!['data'];
-
+          // Ambil map jadwal ("1": [...], "2": [...], dst)
           final Map<String, dynamic> scheduleMap = responseData['schedule'];
 
+          // Ambil daftar pelajaran untuk hari yang dipilih
           final List<dynamic> selectedDaySchedule =
               scheduleMap[_selectedDay.toString()] ?? [];
 
-          final selectedDate = _weekDays[_selectedDay - 1];
+          // Ambil tanggal (DateTime) untuk hari yang dipilih
+          final selectedDate = _weekDays[_selectedDay - 1]; // index 0-6
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +389,7 @@ class _ScheduleTabState extends State<ScheduleTab> {
               _buildMonthYearTitle(),
               _buildDayScroller(),
               _buildSelectedDayInfo(selectedDate),
-
+              // Daftar Card Jadwal
               Expanded(
                 child: selectedDaySchedule.isEmpty
                     ? Align(

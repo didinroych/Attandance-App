@@ -31,13 +31,13 @@ class AppTheme {
 
       // Tema AppBar
       appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 2,
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: Colors.black,
         ),
       ),
 
@@ -48,7 +48,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(20.0),
           ),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
@@ -63,15 +63,15 @@ class AppTheme {
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide.none, // Tidak ada border
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(20.0),
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
         labelStyle: const TextStyle(color: textColor),

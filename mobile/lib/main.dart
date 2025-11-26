@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:mobile/constants/app_theme.dart';
-import 'package:mobile/providers/auth_provider.dart';
-import 'package:mobile/screens/auth/login_screen.dart';
-import 'package:mobile/screens/main_screen.dart';
+import 'package:mobile/providers/auth_providers.dart';
+import 'package:mobile/screen/auth/login_screen.dart';
+import 'package:mobile/screen/main_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 // MODIFIKASI: Jadikan main() sebagai async
 Future<void> main() async {
   // BARU: Pastikan Flutter binding siap
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
 
   runApp(
     ChangeNotifierProvider(
