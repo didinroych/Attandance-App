@@ -135,11 +135,9 @@ const studentCheckIn = async(request) => {
         };
     }
 
-    // Check if student has already checked in (status is not absent)
+    // Check if student has already checked in
     if (session.attendances && session.attendances.length > 0) {
         const existingAttendance = session.attendances[0];
-
-        // Only consider it "already checked in" if status is not absent
         if (existingAttendance.status !== 'absent') {
             return {
                 success: false,
@@ -153,7 +151,6 @@ const studentCheckIn = async(request) => {
             };
         }
     }
-
     // Determine attendance status (present or late)
     const checkInTime = new Date();
     const status = determineAttendanceStatus(
@@ -163,18 +160,35 @@ const studentCheckIn = async(request) => {
         15 // 15 minutes late threshold
     );
 
-    // Create attendance record
-    const attendance = await prismaClient.attendance.create({
-        data: {
-            attendanceSessionId: session.id,
-            studentId: studentId,
-            status: status,
-            checkInTime: checkInTime,
-            attendanceMethod: 'face_recognition',
-            faceConfidence: verificationResult.confidence,
-            notes: `Auto check-in via face recognition`
-        }
-    });
+    // If attendance record exists (status is absent), update it; otherwise create new
+    let attendance;
+    if (session.attendances && session.attendances.length > 0) {
+        // Update existing absent record
+        const existingAttendance = session.attendances[0];
+        attendance = await prismaClient.attendance.update({
+            where: { id: existingAttendance.id },
+            data: {
+                status: status,
+                checkInTime: checkInTime,
+                attendanceMethod: 'face_recognition',
+                faceConfidence: verificationResult.confidence,
+                notes: `Auto check-in via face recognition`
+            }
+        });
+    } else {
+        // Create new record (edge case: no pre-created record)
+        attendance = await prismaClient.attendance.create({
+            data: {
+                attendanceSessionId: session.id,
+                studentId: studentId,
+                status: status,
+                checkInTime: checkInTime,
+                attendanceMethod: 'face_recognition',
+                faceConfidence: verificationResult.confidence,
+                notes: `Auto check-in via face recognition`
+            }
+        });
+    }
 
     return {
         success: true,
